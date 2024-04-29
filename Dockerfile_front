@@ -1,0 +1,13 @@
+FROM node:16
+
+WORKDIR /app
+
+COPY spotpeeker-front/spotpeeker/package.json spotpeeker-front/spotpeeker/package-lock.json* ./
+
+RUN npm install
+
+COPY ./spotpeeker-front/spotpeeker .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

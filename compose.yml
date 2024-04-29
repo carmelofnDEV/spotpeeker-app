@@ -1,0 +1,29 @@
+services:
+  django-webserver:
+    container_name: ${NOMBRE_APLICACION}-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${PUERTO_BACK}:8000
+    volumes:
+      - ./spotpeeker-webserver:/usr/src/app
+    networks:
+      - spotpeeker_network
+
+  react-front:
+    container_name: ${NOMBRE_APLICACION}-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile_front
+    ports:
+      - 81:5173
+    volumes:
+      - ./spotpeeker-front/spotpeeker:/app
+    networks:
+      - spotpeeker_network
+
+
+networks:
+  spotpeeker_network:
