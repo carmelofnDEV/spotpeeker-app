@@ -6,6 +6,8 @@ COPY spotpeeker-front/spotpeeker/package.json spotpeeker-front/spotpeeker/packag
 
 RUN npm install
 
+RUN npm install react-router-dom
+
 COPY ./spotpeeker-front/spotpeeker .
 
 EXPOSE 5173

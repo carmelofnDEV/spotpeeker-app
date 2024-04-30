@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
 
+    #Para aceptar peticiones del front
     'corsheaders',
 ]
 

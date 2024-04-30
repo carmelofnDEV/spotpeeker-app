@@ -1,36 +1,13 @@
-import { useState,useEffect} from 'react'
-import './App.css'
+import { Home } from "./Pages/Home";
+import { env } from "./env";
+import {Router, Routes, Route} from 'react-router-dom'
 
-function App() {
-  const [data, setData] = useState(null);
- 
-  const fetchData = async () => {
-    try {
-      const response = await fetch(`http://localhost//test/`);
-      const jsonData = await response.json();
-      setData(jsonData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+export const App = () => {
+  const SERVER_URL = env.SERVER_URL;
 
   return (
-    <div>
-      <h1>Fetch Example</h1>
-      {data ? (
-        <div>
-          <h2>Data from API:</h2>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
   );
-}
-
-export default App
+};
