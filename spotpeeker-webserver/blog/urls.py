@@ -5,7 +5,19 @@ from . import views
 
 
 urlpatterns = [
-    path("test/",views.test,name="test"),
 
+    #testing
     path("home/",views.index,name="home"),
+    path("",views.test,name="test"),
+
+    #auth
+    path('register/user/', views.register, name='register'),
+    path('login/user/', views.login, name='login'),
+    path('verify-email/<str:token>/', views.verify_mail, name='mail_verify'),
+    path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
+
+
+
+    
+
 ]
