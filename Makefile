@@ -28,3 +28,10 @@ logs:
 off-off:
 	docker compose down
 	poweroff
+	
+commit-and-push:
+	read -p "Mensaje del commit: " mensaje; \
+	git add .; \
+	git commit -m "$$mensaje"; \
+	git push origin main
+	

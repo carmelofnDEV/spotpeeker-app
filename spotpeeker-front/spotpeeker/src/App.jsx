@@ -29,11 +29,12 @@ export const App = () => {
         body: JSON.stringify(authToken),
       });
       const data = await response.json();
+    console.log(data)
 
       setIsLoggedIn( data.valid);
     } catch (error) {
       console.error("Server Error:", error);
-      setIsLoggedIn( false);
+      setIsLoggedIn(false);
     }
   };
 

@@ -6,7 +6,8 @@ from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
 class Usuario(models.Model):
-
+    
+    username = models.CharField(unique=True,max_length=50, null=True)
     name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
@@ -17,7 +18,7 @@ class Usuario(models.Model):
 
 
     def save(self, *args, **kwargs):
-        if self.pk is None:  # Verifica si es un nuevo objeto
+        if self.pk is None:  
             self.password = make_password(self.password)
         else:
             original = Usuario.objects.get(pk=self.pk)
@@ -39,8 +40,8 @@ class SessionCookie(models.Model):
 
 class PerfilUsuario(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    username = models.CharField(max_length=100)
-    foto_perfil = models.ImageField(upload_to='fotos_perfil/', blank=True, null=True)
+    foto_perfil = models.ImageField(upload_to='pics_profile/', default="pics_profile/default.png",blank=True, null=True)
+    aka = models.CharField(max_length=50,blank=True,null=True)
     biografia = models.TextField(blank=True)
     perfil_privado = models.BooleanField(default=False)
     premium = models.BooleanField(default=False)

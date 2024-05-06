@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Usuario,SessionCookie
+from .models import Usuario,SessionCookie,PerfilUsuario
 from django.shortcuts import get_object_or_404
+
+#Comparar objetos
+from django.db.models import Q
 
 #generar cookies
 import uuid
@@ -53,10 +56,11 @@ def login(request):
         email = data.get("email")
         password = data.get("password")
 
-        usuario = Usuario.objects.filter(email=email)
+        usuario = Usuario.objects.filter(Q(email=email) | Q(username=email))
+        
 
         if not usuario:
-            errors["not_email"] = "No existe una cuenta asociada a ese correo."
+            errors["not_email"] = "No existe una cuenta asociada a ese correo o usuario."
         else:
             usuario = usuario[0]
             if usuario.email_verified == False:
@@ -127,14 +131,24 @@ def register(request):
         if checkIfEmailExist(email):
             errors["email_exist"] = "Ese correo ya existe."
 
+        username = data.get("username")
+
+        if len(username) > 49:
+            errors["large_username"] = "El nombre de usuario es demasiado largo."
+
+        if checkIfUsernameExist(username):
+            errors["username_exist"] = "Vaya... ese nombre de usuarios ya existe."
+
+
         if len(errors) == 0:
             verification_token = generate_token((email+name))
             new_user  = Usuario(
-            name=name,
-            last_name=last_name,
-            password=password,
-            email=email,
-            verification_token=verification_token
+                username=username,
+                name=name,
+                last_name=last_name,
+                password=password,
+                email=email,
+                verification_token=verification_token
             )
            
             new_user.save()
@@ -167,6 +181,20 @@ def checkIfEmailExist(email):
  
     return emailExist
 
+#comprubea si el nombre de usuario existe en la BD    
+def checkIfUsernameExist(username):
+    usernameExist = False
+
+    usernames = Usuario.objects.all()
+    
+    for user in usernames:
+        if user.username == username:
+            usernameExist = True
+ 
+    return usernameExist
+
+
+
 
 #verificar el email del usuario
 def verify_mail(request,token):
@@ -174,6 +202,11 @@ def verify_mail(request,token):
     usuario = get_object_or_404(Usuario, verification_token=token)    
     usuario.email_verified = True
     usuario.save()
+
+    nuevo_perfil = PerfilUsuario(
+        usuario=usuario
+    )
+    nuevo_perfil.save()
 
     data = {
         "status":"success"
@@ -229,10 +262,49 @@ def verify_session_cookie(request):
             expiration_date = cookie_sesion[0].created + timedelta(days=1)
 
             if expiration_date > timezone.now():
-                data = {"valid": True}   
+                data = {"valid": True}  
+            else:
+                cookie_sesion.delete()
                 
             
 
     return JsonResponse(data)
 
+#con una cookie de sesion, devuelve usuario y perfil
+@csrf_exempt
+def getUser(request,cookie):
+    data={
+        "status":"error"
+    }
+
+    session_cookie = SessionCookie.objects.filter(value=cookie)
+
+    if session_cookie:
+        user_id = session_cookie[0].user_id
+        user = Usuario.objects.filter(id = user_id)
+        if user:
+            usuario = {
+                "username":user[0].username,
+                "name":user[0].name,
+                "last_name":user[0].last_name,
+                "email":user[0].email,
+            }
+
+            data["usuario"] = usuario
+            data["status"] = "success"
+
+            perfil = PerfilUsuario.objects.filter(usuario=user[0])
+            if perfil:
+                perfil_usuario = {
+                    "foto_perfil":perfil[0].foto_perfil.url,
+                    "aka":perfil[0].aka,
+                    "biografia":perfil[0].biografia,
+                    "es_privado":perfil[0].perfil_privado,
+                    "es_premium":perfil[0].premium,
+                }
+                data["perfil"] = perfil_usuario
+
+
+
+    return JsonResponse(data)
         

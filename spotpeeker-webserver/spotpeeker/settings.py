@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,8 +34,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Carpeta de multimedia
 STATIC_URL = '/static/'
 
-
-
+#archivos media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 #credenciales correo
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

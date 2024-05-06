@@ -16,6 +16,10 @@ urlpatterns = [
     path('verify-email/<str:token>/', views.verify_mail, name='mail_verify'),
     path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
 
+    #getUser
+    path('getUser/<str:cookie>', views.getUser, name='getuser'),
+
+
 
 
     
