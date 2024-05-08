@@ -2,6 +2,9 @@ import { useState } from "react";
 import { env } from "../../env";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+
+
 export const useAuth = () => {
   const navigate = useNavigate();
 
@@ -9,6 +12,9 @@ export const useAuth = () => {
 
   const [registerData, setRegisterData] = useState({});
   const [loginData, setLoginData] = useState({});
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
 
   const [errors, setErrors] = useState({});
 
@@ -73,6 +79,37 @@ export const useAuth = () => {
     }
   };
 
+  useEffect(() => {
+    checkSession();
+  }, [navigate]);
+
+
+
+  const checkSession = async () => {
+    
+    const authToken = {
+      "auth_token":Cookies.get("auth_token"),
+    };
+
+
+    try {
+        const response = await fetch(`${SERVER_URL}/verify-cookie/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(authToken),
+      });
+      const data = await response.json();
+    console.log(data)
+
+      setIsLoggedIn( data.valid);
+    } catch (error) {
+      console.error("Server Error:", error);
+      setIsLoggedIn(false);
+    }
+  };
+
   return {
     //Register
     onChangeRegisterInput,
@@ -89,7 +126,10 @@ export const useAuth = () => {
     //Auth
     setErrors,
     errors,
-    navigate
+    navigate,
+    isLoggedIn, 
+    setIsLoggedIn,
+    checkSession,
     
   };
 };

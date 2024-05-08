@@ -1,4 +1,5 @@
 # Spotpeeker
+![.](./spotpeeker-webserver/blog/static/logo-home.png)
 
 Spotpeeker es una red social creada por Carmelo José Fernández Navarro como proyecto final de grado superior (TFG). Es una plataforma para compartir y descubrir piezas de arte urbano, conectando a usuarios con amigos y artistas favoritos.
 

@@ -8,8 +8,11 @@ export const Home = () => {
 
 
   return (
+  <>
     <div className="flex justify-center items-center">
       <a className="flex justify-center items-center" href="/"><img className="w-[60%]" src={`${SERVER_URL}/static/logo-home.png`} alt="imagen" /></a>
     </div>
+  </>
+
   );
 };
