@@ -19,6 +19,9 @@ urlpatterns = [
     #getUser
     path('getUser/<str:cookie>', views.getUser, name='getuser'),
 
+    path('upload-pic_profile/', views.uploadPicProfile, name='uploadPicProfile'),
+
+
 
 
 

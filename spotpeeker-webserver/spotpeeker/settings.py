@@ -30,6 +30,24 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 CORS_ALLOW_ALL_ORIGINS = True
+## para limitar los origenes
+# CORS_ORIGIN_WHITELIST = (
+#     'http://localhost:81',
+#     'http://localhost',
+# )
+
+#configuración de seguridad de las cookies
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOW_CREDENTIALS = True
+
+
+
+
 
 # Carpeta de multimedia
 STATIC_URL = '/static/'
@@ -71,6 +89,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #trabajar con cookies
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]

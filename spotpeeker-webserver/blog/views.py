@@ -18,8 +18,9 @@ from django.conf import settings
 #trabajar con json
 import json
 
-#evita la verficación csrf
+#evita la verficación csrf 
 from django.views.decorators.csrf import csrf_exempt
+
 
 #generar tokens para el usuario
 import hashlib
@@ -307,4 +308,40 @@ def getUser(request,cookie):
 
 
     return JsonResponse(data)
+
+
+def getPerfil(cookie):
+    perfil = False
+
+    session_cookie = SessionCookie.objects.filter(value=cookie)
+    if session_cookie:
+        user_id = session_cookie[0].user_id
+        user = Usuario.objects.filter(id = user_id)
+        if user:
+            perfil = PerfilUsuario.objects.filter(usuario=user[0])[0]
+
+    return perfil
+
+
+#actualiza la foto de perfil de un usuario
+@csrf_exempt
+def uploadPicProfile(request):
+    data={"status":"error"}
+
+    if request.method == 'POST' and request.FILES['pic']:
+        pic = request.FILES['pic']
+        cookie = request.COOKIES.get("auth_token")
+        perfil = getPerfil(cookie)
+        perfil.foto_perfil = pic
+        perfil.save()
+        data={"status":"succes"}
+
         
+
+        
+
+
+
+
+
+    return JsonResponse(data)
