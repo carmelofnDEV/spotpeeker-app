@@ -21,6 +21,9 @@ urlpatterns = [
 
     path('upload-pic_profile/', views.uploadPicProfile, name='uploadPicProfile'),
 
+    path('publicar-post/', views.uploadPost, name='uploadPost'),
+
+
 
 
 

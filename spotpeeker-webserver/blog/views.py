@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Usuario,SessionCookie,PerfilUsuario
+from .models import Usuario,SessionCookie,PerfilUsuario,Publicacion,Imagen,Etiqueta
 from django.shortcuts import get_object_or_404
 
 #Comparar objetos
@@ -305,20 +305,43 @@ def getUser(request,cookie):
                 }
                 data["perfil"] = perfil_usuario
 
+            publicaciones = []
+
+            posts = Publicacion.objects.filter(autor=perfil[0])
+            
+            for post in posts:
+                post_tags = list(post.etiquetas.all().values())
+                post_photos = list(post.imagenes.all().values())
+                publicacion = {
+                    'descripcion':post.descripcion,
+                    'ubicacion':  post.ubicacion,
+                    'etiquetas': post_tags,
+                    'imagenes': post_photos,
+                }
+                publicaciones.append(publicacion)
+            data["publicaciones"] = publicaciones
+
+            
+
+
 
 
     return JsonResponse(data)
 
 
-def getPerfil(cookie):
+def getPerfil(request):
     perfil = False
 
-    session_cookie = SessionCookie.objects.filter(value=cookie)
-    if session_cookie:
-        user_id = session_cookie[0].user_id
-        user = Usuario.objects.filter(id = user_id)
-        if user:
-            perfil = PerfilUsuario.objects.filter(usuario=user[0])[0]
+    cookie = request.COOKIES.get("auth_token")
+
+
+    if cookie:
+        session_cookie = SessionCookie.objects.filter(value=cookie)
+        if session_cookie:
+            user_id = session_cookie[0].user_id
+            user = Usuario.objects.filter(id = user_id)
+            if user:
+                perfil = PerfilUsuario.objects.filter(usuario=user[0])[0]
 
     return perfil
 
@@ -330,18 +353,106 @@ def uploadPicProfile(request):
 
     if request.method == 'POST' and request.FILES['pic']:
         pic = request.FILES['pic']
-        cookie = request.COOKIES.get("auth_token")
-        perfil = getPerfil(cookie)
-        perfil.foto_perfil = pic
-        perfil.save()
-        data={"status":"succes"}
-
         
+        perfil = getPerfil(request)
+        if perfil:
+            pic.name = f"{perfil.usuario}_pic_profile"
+            perfil.foto_perfil = pic
+            perfil.save()
+            data={"status":"success"} 
 
-        
 
 
 
 
 
     return JsonResponse(data)
+
+
+def generatePhotoName(name):
+    raw_name = name.split('.')  
+    extension = raw_name[-1] 
+    new_name = f"{uuid.uuid4()}.{extension}"
+    return new_name
+
+
+ 
+
+   
+@csrf_exempt
+def uploadPost(request):
+    data = {"status": "error"}
+    errors = {}
+    max_size = 10 * 1024 * 1024  # 10 MB
+    allowed_types = ['image/jpeg', 'image/png','image/gif']
+
+    if request.method == 'POST' and request.FILES:
+
+        perfil = getPerfil(request)
+
+        if perfil:
+
+            
+            description = request.POST.get('description', '')
+            tags = request.POST.getlist('tags', [])
+            coords = request.POST.get('coords', '')
+            photos_list = []
+            photos = request.FILES.getlist('photos')
+
+            for photo in photos:
+                if photo.size > max_size:
+                    errors["max_size"] = "El archivo " + photo.name+ " pesa demasiado. (10MB max)"
+                    
+
+
+                if photo.content_type not in allowed_types:
+                    errors["bad_type"] = "Tipo de archivo no válido ("+photo.name+")"
+                
+                photos_list.append(photo) 
+
+            if len(errors) == 0:
+
+                publicacion = Publicacion(
+                    autor=perfil,
+                    descripcion=description,
+                    ubicacion=coords
+                )
+
+                publicacion.save()
+
+                for photo in photos_list:
+                    try:
+                        imagen = Imagen()
+                        filename = generatePhotoName(photo.name)
+                        imagen.imagen.save(filename,photo)
+                        publicacion.imagenes.add(imagen)
+                    except Exception as e:
+                        errors["server_error_photos"] = f"{e}"
+                
+                for tag in tags:
+                    try:
+                        etiqueta = Etiqueta(nombre=tag)
+                        etiqueta.save()
+                        publicacion.etiquetas.add(etiqueta)
+                    except Exception as e:
+                        errors["server_error_tags"] = f"{e}"
+
+                data = {"status": "success"}
+
+                                
+
+                
+
+
+    if not request.FILES:
+        errors["no_photo"] = "Debes subir al menos una foto."
+        
+    
+    if len(errors) != 0:
+        data = {
+            "status": "error",
+            "errors": errors,
+        }
+
+
+    return JsonResponse(data)  

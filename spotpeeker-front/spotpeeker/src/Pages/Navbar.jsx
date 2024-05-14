@@ -5,7 +5,7 @@ import { useAuth } from '../Hooks/Auth/useAuth';
 export const Navbar = () => {
   const {  isLoggedIn } = useAuth();
   
-    if(window.location.pathname == "/login" || window.location.pathname == "/register"){
+    if(window.location.pathname == "/login" || window.location.pathname == "/register" || window.location.pathname == "/publicar"){
         return null;
     }
 

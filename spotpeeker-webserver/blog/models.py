@@ -50,14 +50,18 @@ class PerfilUsuario(models.Model):
 class Etiqueta(models.Model):
     nombre = models.CharField(max_length=50)
 
+class Imagen(models.Model):
+    imagen = models.ImageField(upload_to='fotos-publicaciones/')
 
 class Publicacion(models.Model):
     autor = models.ForeignKey(PerfilUsuario, on_delete=models.CASCADE)
-    imagenes = models.ImageField(upload_to='imagenes_publicacion/')
+    imagenes = models.ManyToManyField(Imagen, null=True,related_name='imagenes_publicacion')
     descripcion = models.TextField(blank=True)
     ubicacion = models.CharField(max_length=100)
-    etiquetas = models.ManyToManyField(Etiqueta, related_name='publicaciones')
+    etiquetas = models.ManyToManyField(Etiqueta, related_name='etiquetas_publicacion')
     creado_en = models.DateTimeField(auto_now_add=True)
+
+
 
 class Comentario(models.Model):
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='comentarios')

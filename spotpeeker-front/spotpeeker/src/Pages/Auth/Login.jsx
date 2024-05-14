@@ -31,17 +31,18 @@ export const Login = () => {
     }
   }
 
-  
 
   return (
     <div className="flex justify-center items-center mt-20 w-[100%] p-5 ">
       <form onSubmit={loginCredentials} className="lg:w-1/3 flex flex-col bg-[#dddddd] px-8 py-5 rounded-xl gap-5">
         <div className="flex justify-center ">
+
           <img
             className="w-[80%]"
             src={`${SERVER_URL}/static/logo-home.png`}
             alt="imagen"
           />
+          
         </div>
 
         <div className="flex flex-col">
