@@ -17,11 +17,19 @@ urlpatterns = [
     path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
 
     #getUser
-    path('getUser/<str:cookie>', views.getUser, name='getuser'),
+    path('getUser/', views.getUserData, name='getuser'),
+
+    #getUserProfile
+    path('getUserProfile/<str:username>', views.getUserProfileData, name='getuser'),
 
     path('upload-pic_profile/', views.uploadPicProfile, name='uploadPicProfile'),
 
     path('publicar-post/', views.uploadPost, name='uploadPost'),
+
+    #social
+    path('like-post/', views.likePost, name='likePost'),
+
+    
 
 
 

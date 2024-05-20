@@ -1,14 +1,29 @@
 import { useEffect, useState } from "react";
-import { useUserData } from "../Hooks/useUserData";
+import { useUserProfile } from "../Hooks/useUserProfile";
 import { env } from "../env";
 import { Modal } from "./Components/Modal";
 import { PicProfileModal } from "./Modals/PicProfileModal";
+import { PostPerfil } from "./PostPerfil";
+import { useLocation, useParams } from "react-router-dom";
+import { useUser } from "../Hooks/useUser";
 
 export const Perfil = () => {
+  
+  const { pathname } = useLocation()
+  const { username } = useParams();
   const SERVER_URL = env.SERVER_URL;
+
   const [hoverImg, setHoverImg] = useState(false);
 
-  const { getUser } = useUserData();
+  const { getUserProfile } = useUserProfile();
+
+  const { getUser } = useUser();
+
+
+  const [usernameProfile, setUsernameProfile] = useState({});
+
+
+
   const [userData, setUserData] = useState({});
   const [profileData, setProfileData] = useState({});
   const [posts, setPosts] = useState([]);
@@ -16,7 +31,9 @@ export const Perfil = () => {
   const [modalOpen, setmodalOpen] = useState(false);
 
   const fetchData = async () => {
-    const data = await getUser();
+    
+    const data = await getUserProfile(usernameProfile);
+
     if (data != null) {
       if (data.status == "success") {
         setUserData(data.usuario);
@@ -38,9 +55,27 @@ export const Perfil = () => {
     fetchData();
   };
 
+
   useEffect(() => {
-    fetchData();
+    const fetchUser = async () => {
+      const sessionuser = await getUser();
+      setUsernameProfile(sessionuser.user.username);
+    };
+    if(pathname === "/perfil"){
+      fetchUser();
+    }else{
+      setUsernameProfile(username)
+      
+    }
+
   }, []);
+
+  useEffect(() => {
+    console.log("aa",usernameProfile)
+    fetchData();
+  }, [usernameProfile]);
+
+
   return (
     <>
       <>
@@ -95,9 +130,9 @@ export const Perfil = () => {
                   </a>
                 </div>
                 <div className="flex justify-around">
-                  <p>3 publicaciones</p>
-                  <p>13 seguidores</p>
-                  <p>1000 me gusta</p>
+                  <p>0 publicaciones</p>
+                  <p>0 seguidores</p>
+                  <p>{profileData.likes_perfil} me gusta</p>
                 </div>
                 <div>{profileData.biografia}</div>
               </div>
@@ -105,23 +140,11 @@ export const Perfil = () => {
             <div></div>
           </div>
 
-          <div className="flex justify-center">
-            <div className="grid grid-cols-3">
+          <div className="flex justify-center relative">
+            <div className="grid grid-cols-3 ">
+              {/* Bucle de fotos */}
               {posts.map((post) => (
-                <>
-                  <div
-                    className=""
-                    key={Date.now() + Math.random()}
-                  >
-                    <img
-                      className="w-[200px] h-[200px] object-cover"
-                      key={post.imagenes[0].id}
-                      src={`${SERVER_URL}/media/${post.imagenes[0].imagen}`}
-                      alt="bad_post"
-                    />
-                  </div>
-
-                </>
+                <PostPerfil  key={Date.now() + Math.random()} postPerfil={post}/>
               ))}
             </div>
           </div>
@@ -130,7 +153,6 @@ export const Perfil = () => {
             <PicProfileModal
               onClose={modalOnClose}
               onSuccess={onSuccess}
-              some
             />
           </Modal>
         </div>

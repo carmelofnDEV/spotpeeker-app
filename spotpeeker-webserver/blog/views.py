@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Usuario,SessionCookie,PerfilUsuario,Publicacion,Imagen,Etiqueta
+from .models import Usuario,SessionCookie,PerfilUsuario,Publicacion,Imagen,Etiqueta,MeGusta
 from django.shortcuts import get_object_or_404
+
 
 #Comparar objetos
 from django.db.models import Q
@@ -271,65 +272,119 @@ def verify_session_cookie(request):
 
     return JsonResponse(data)
 
+@csrf_exempt
+def getUserData(request):
+
+    data = {"status":"error"}
+
+    user = getUserRequest(request)
+
+    if user:
+
+        usuario = {
+            "username": user.username,
+            "name": user.name,
+            "last_name": user.last_name,
+            "email": user.email,
+        }
+        data = {"status":"success","user":usuario}
+
+    return JsonResponse(data)
+
+
+
+
 #con una cookie de sesion, devuelve usuario y perfil
 @csrf_exempt
-def getUser(request,cookie):
-    data={
-        "status":"error"
+def getUserProfileData(request,username):
+
+    data = {
+        "status": "error"
     }
 
-    session_cookie = SessionCookie.objects.filter(value=cookie)
+    try:
+        user = Usuario.objects.get(username=username)
 
-    if session_cookie:
-        user_id = session_cookie[0].user_id
-        user = Usuario.objects.filter(id = user_id)
         if user:
             usuario = {
-                "username":user[0].username,
-                "name":user[0].name,
-                "last_name":user[0].last_name,
-                "email":user[0].email,
+                "username": user.username,
+                "name": user.name,
+                "last_name": user.last_name,
+                "email": user.email,
             }
 
             data["usuario"] = usuario
             data["status"] = "success"
 
-            perfil = PerfilUsuario.objects.filter(usuario=user[0])
-            if perfil:
+            try:
+                profile_likes=0
+                perfil = PerfilUsuario.objects.get(usuario=user)
                 perfil_usuario = {
-                    "foto_perfil":perfil[0].foto_perfil.url,
-                    "aka":perfil[0].aka,
-                    "biografia":perfil[0].biografia,
-                    "es_privado":perfil[0].perfil_privado,
-                    "es_premium":perfil[0].premium,
+                    "foto_perfil": perfil.foto_perfil.url,
+                    "aka": perfil.aka,
+                    "biografia": perfil.biografia,
+                    "es_privado": perfil.perfil_privado,
+                    "es_premium": perfil.premium,
                 }
+
+                publicaciones = []
+                posts = Publicacion.objects.filter(autor=perfil)
+
+                for post in posts:
+                    post_tags = list(post.etiquetas.all().values())
+                    post_photos = list(post.imagenes.all().values())
+
+                    current_profile = getPerfilRequest(request)
+
+                    existing_like = MeGusta.objects.filter(usuario=current_profile, publicacion=post)
+
+                    try:
+                        likes = MeGusta.objects.filter(publicacion=post)
+                        likes = len(likes)
+                        profile_likes+=likes
+
+                    except (SessionCookie.DoesNotExist, Usuario.DoesNotExist):
+                        likes = 0
+
+                    publicacion = {
+                        "id": post.pk,
+                        "autor": post.autor.usuario.username,
+                        'descripcion': post.descripcion,
+                        'ubicacion': post.ubicacion,
+                        'etiquetas': post_tags,
+                        'imagenes': post_photos,
+                        "likes":likes,
+                        "liked_by_user": existing_like.exists(),
+                    }
+                    publicaciones.append(publicacion)
+
+                perfil_usuario["likes_perfil"] = profile_likes
+                data["publicaciones"] = publicaciones
                 data["perfil"] = perfil_usuario
 
-            publicaciones = []
 
-            posts = Publicacion.objects.filter(autor=perfil[0])
-            
-            for post in posts:
-                post_tags = list(post.etiquetas.all().values())
-                post_photos = list(post.imagenes.all().values())
-                publicacion = {
-                    'descripcion':post.descripcion,
-                    'ubicacion':  post.ubicacion,
-                    'etiquetas': post_tags,
-                    'imagenes': post_photos,
-                }
-                publicaciones.append(publicacion)
-            data["publicaciones"] = publicaciones
-
-            
-
-
-
+            except PerfilUsuario.DoesNotExist:
+                data["status"] = "error"
+                data["message"] = "Perfil not found"
+    except (SessionCookie.DoesNotExist, Usuario.DoesNotExist):
+        pass
 
     return JsonResponse(data)
 
+def getUserRequest(request):
+    usuario = None
+    cookie = request.COOKIES.get("auth_token")
 
-def getPerfil(request):
+    if cookie:
+        try:
+            session_cookie = SessionCookie.objects.get(value=cookie)
+            usuario = Usuario.objects.get(id=session_cookie.user_id)
+        except (SessionCookie.DoesNotExist, Usuario.DoesNotExist):
+            pass
+
+    return usuario
+
+def getPerfilRequest(request):
     perfil = False
 
     cookie = request.COOKIES.get("auth_token")
@@ -354,7 +409,7 @@ def uploadPicProfile(request):
     if request.method == 'POST' and request.FILES['pic']:
         pic = request.FILES['pic']
         
-        perfil = getPerfil(request)
+        perfil = getPerfilRequest(request)
         if perfil:
             pic.name = f"{perfil.usuario}_pic_profile"
             perfil.foto_perfil = pic
@@ -388,7 +443,7 @@ def uploadPost(request):
 
     if request.method == 'POST' and request.FILES:
 
-        perfil = getPerfil(request)
+        perfil = getPerfilRequest(request)
 
         if perfil:
 
@@ -456,3 +511,36 @@ def uploadPost(request):
 
 
     return JsonResponse(data)  
+
+#social
+
+@csrf_exempt
+def likePost(request):
+    data = {"status":"error"}
+
+    if request.method:
+        post_data = json.loads(request.body.decode('utf-8'))
+
+        post_id = post_data.get("post")
+
+        post = Publicacion.objects.get(pk=post_id)
+
+        if post:
+
+            perfil = getPerfilRequest(request)
+
+            if perfil:
+
+                existing_like = MeGusta.objects.filter(usuario=perfil, publicacion=post)
+                
+                if existing_like.exists():
+                    existing_like.delete()
+                    data = {"status": "success","action":"unliked"}
+
+                else:
+                    like = MeGusta(usuario=perfil,publicacion=post)
+                    like.save()
+                    data = {"status": "success","action":"liked"}
+
+    return JsonResponse(data)  
+            

@@ -2,15 +2,16 @@ import Cookies from "js-cookie";
 import { useState } from "react";
 import { env } from "../env";
 
-export const useUserData = () => {
+export const useUserProfile = () => {
   const SERVER_URL = env.SERVER_URL;
 
-  const getUser = async () => {
+  const getUserProfile = async (username) => {
     try {
       const response = await fetch(
-        `${SERVER_URL}/getUser/${Cookies.get("auth_token")}`,
+        `${SERVER_URL}/getUserProfile/${username}`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -25,5 +26,5 @@ export const useUserData = () => {
     }
   };
 
-  return { getUser };
+  return { getUserProfile };
 };

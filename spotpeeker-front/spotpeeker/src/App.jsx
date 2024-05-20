@@ -25,7 +25,7 @@ export const App = () => {
           ) : (
             <Route path="/perfil" element={<Home />} />
           )}
-
+          <Route path="/usuario/:username" element={<Perfil />} />
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

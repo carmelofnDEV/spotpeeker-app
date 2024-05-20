@@ -1,38 +1,53 @@
 import { useState } from "react";
 
+export const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) {
+    return null;
+  } else {
+    return (
+      <div className="fixed top-0 left-0 w-full h-full flex items-start justify-center bg-black bg-opacity-50 z-40">
+        <div className=" p-8 rounded-lg shadow-md mt-[5%]">
+          <div className="flex justify-end">
+            <button className="bg-white " onClick={onClose}>
 
-export const Modal = ({ isOpen, onClose,children }) => {
-  
+              <svg
+                width="20px"
+                height="20px"
+                viewBox="-0.5 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg">
 
-    if (!isOpen){
-        return null
-    }else{
-        return(
-            <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="flex justify-end">
-                <button onClick={onClose}>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-gray-500 hover:text-gray-700 cursor-pointer"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
+                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M3 21.32L21 3.32001"
+                    stroke="#000000"
+                    strokeWidth={1.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                    />
-                </svg>
-                </button>
-            </div>
+                  />
+                  <path
+                    d="M3 3.32001L21 21.32"
+                    stroke="#000000"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+              </svg>
+            </button>
+          </div>
 
-                {children} 
-            
-            </div>
+          {children}
         </div>
-        )
-    };
-}
+      </div>
+    );
+  }
+};
