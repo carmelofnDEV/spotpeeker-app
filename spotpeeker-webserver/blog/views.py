@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Usuario,SessionCookie,PerfilUsuario,Publicacion,Imagen,Etiqueta,MeGusta
+from .models import *
 from django.shortcuts import get_object_or_404
 
 
@@ -255,6 +255,7 @@ def verify_session_cookie(request):
     data = {"valid": False}   
 
     if request.method == "POST":
+
         data_post = json.loads(request.body.decode('utf-8'))
         cookie = data_post.get("auth_token")
         cookie_sesion = SessionCookie.objects.filter(value=cookie)
@@ -338,13 +339,29 @@ def getUserProfileData(request,username):
 
                     existing_like = MeGusta.objects.filter(usuario=current_profile, publicacion=post)
 
+                    comments = Comentario.objects.filter(publicacion=post)
+
+                    post_comments=[]
+
+                    for comment in comments:
+
+                        new_comment={
+                            "pic":comment.autor.foto_perfil.url,
+                            "username":comment.autor.usuario.username,
+                            "content":comment.texto
+                        }
+
+                        post_comments.append(new_comment)
+
                     try:
+
                         likes = MeGusta.objects.filter(publicacion=post)
                         likes = len(likes)
                         profile_likes+=likes
 
                     except (SessionCookie.DoesNotExist, Usuario.DoesNotExist):
                         likes = 0
+
 
                     publicacion = {
                         "id": post.pk,
@@ -355,6 +372,8 @@ def getUserProfileData(request,username):
                         'imagenes': post_photos,
                         "likes":likes,
                         "liked_by_user": existing_like.exists(),
+                        "comentarios":post_comments
+
                     }
                     publicaciones.append(publicacion)
 
@@ -389,7 +408,6 @@ def getPerfilRequest(request):
 
     cookie = request.COOKIES.get("auth_token")
 
-
     if cookie:
         session_cookie = SessionCookie.objects.filter(value=cookie)
         if session_cookie:
@@ -416,29 +434,39 @@ def uploadPicProfile(request):
             perfil.save()
             data={"status":"success"} 
 
-
-
-
-
-
     return JsonResponse(data)
 
+@csrf_exempt
+def logout(request):
+
+    data = {"status": False}   
+
+    if request.method == "POST":
+        
+        cookie = request.COOKIES.get("auth_token")
+
+        
+        cookie_sesion = SessionCookie.objects.filter(value=cookie)
+
+        if cookie_sesion:
+
+            cookie_sesion.delete()
+            data = {"status": True}
+
+    return JsonResponse(data)
 
 def generatePhotoName(name):
     raw_name = name.split('.')  
     extension = raw_name[-1] 
     new_name = f"{uuid.uuid4()}.{extension}"
     return new_name
-
-
- 
-
    
+
 @csrf_exempt
 def uploadPost(request):
     data = {"status": "error"}
     errors = {}
-    max_size = 10 * 1024 * 1024  # 10 MB
+    max_size = 10 * 1024 * 1024 
     allowed_types = ['image/jpeg', 'image/png','image/gif']
 
     if request.method == 'POST' and request.FILES:
@@ -494,11 +522,6 @@ def uploadPost(request):
 
                 data = {"status": "success"}
 
-                                
-
-                
-
-
     if not request.FILES:
         errors["no_photo"] = "Debes subir al menos una foto."
         
@@ -513,12 +536,11 @@ def uploadPost(request):
     return JsonResponse(data)  
 
 #social
-
 @csrf_exempt
 def likePost(request):
     data = {"status":"error"}
 
-    if request.method:
+    if request.method == "POST":
         post_data = json.loads(request.body.decode('utf-8'))
 
         post_id = post_data.get("post")
@@ -543,4 +565,36 @@ def likePost(request):
                     data = {"status": "success","action":"liked"}
 
     return JsonResponse(data)  
-            
+
+@csrf_exempt
+def commentPost(request):
+    data = {"status":"error"}
+
+    if request.method == "POST":
+
+        post_data = json.loads(request.body.decode('utf-8'))
+
+        post_id = post_data.get("post")
+
+        post = Publicacion.objects.get(pk=post_id)
+
+        if post:
+            perfil = getPerfilRequest(request)
+            if perfil:
+                cont_comentario = post_data.get("comentario")
+                if cont_comentario and len(cont_comentario) > 0:
+                    comentario = Comentario(publicacion = post, autor=perfil,texto=cont_comentario)
+                    comentario.save()
+
+                    comment = {
+                            "pic":perfil.foto_perfil.url,
+                            "username":perfil.usuario.username,
+                            "content":cont_comentario
+                    }
+
+                    data = {
+                        "status":"success",
+                        "comment":comment,
+                        }
+
+    return JsonResponse(data)  

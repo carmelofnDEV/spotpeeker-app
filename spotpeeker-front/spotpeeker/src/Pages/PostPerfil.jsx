@@ -79,6 +79,7 @@ export const PostPerfil = ({ postPerfil }) => {
       </button>
       <Modal isOpen={modalOpen} onClose={closeModal}>
         <PostModal singlePost={postPerfil} />
+
       </Modal>
     </>
   );

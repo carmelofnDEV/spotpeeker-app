@@ -66,7 +66,7 @@ class Publicacion(models.Model):
 class Comentario(models.Model):
     publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='comentarios')
     autor = models.ForeignKey(PerfilUsuario, on_delete=models.CASCADE)
-    texto = models.TextField()
+    texto = models.CharField(max_length=500)
     creado_en = models.DateTimeField(auto_now_add=True)
 
 class MeGusta(models.Model):

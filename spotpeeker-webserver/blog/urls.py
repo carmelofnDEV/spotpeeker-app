@@ -13,8 +13,10 @@ urlpatterns = [
     #auth
     path('register/user/', views.register, name='register'),
     path('login/user/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
     path('verify-email/<str:token>/', views.verify_mail, name='mail_verify'),
     path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
+
 
     #getUser
     path('getUser/', views.getUserData, name='getuser'),
@@ -28,6 +30,8 @@ urlpatterns = [
 
     #social
     path('like-post/', views.likePost, name='likePost'),
+    path('comment-post/', views.commentPost, name='commentPost'),
+
 
     
 

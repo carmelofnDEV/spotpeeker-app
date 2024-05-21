@@ -4,10 +4,13 @@ import { env } from "../env";
 import { Modal } from "./Components/Modal";
 import { PicProfileModal } from "./Modals/PicProfileModal";
 import { PostPerfil } from "./PostPerfil";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "../Hooks/useUser";
 
 export const Perfil = () => {
+
+  const navigate = useNavigate();
+
   
   const { pathname } = useLocation()
   const { username } = useParams();
@@ -68,12 +71,12 @@ export const Perfil = () => {
       
     }
 
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     console.log("aa",usernameProfile)
     fetchData();
-  }, [usernameProfile]);
+  }, [usernameProfile,navigate]);
 
 
   return (
@@ -142,10 +145,12 @@ export const Perfil = () => {
 
           <div className="flex justify-center relative">
             <div className="grid grid-cols-3 ">
+
               {/* Bucle de fotos */}
               {posts.map((post) => (
                 <PostPerfil  key={Date.now() + Math.random()} postPerfil={post}/>
               ))}
+
             </div>
           </div>
 
@@ -154,6 +159,8 @@ export const Perfil = () => {
               onClose={modalOnClose}
               onSuccess={onSuccess}
             />
+
+
           </Modal>
         </div>
       </>

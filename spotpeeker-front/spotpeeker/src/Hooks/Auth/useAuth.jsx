@@ -18,6 +18,35 @@ export const useAuth = () => {
 
   const [errors, setErrors] = useState({});
 
+  const onLogout = async() => {
+
+    try {
+      const response = await fetch(`${SERVER_URL}/logout/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      console.log("respuesta servidoraa, ", data);
+
+      if (data.status == true) {
+        Cookies.remove('auth_token');
+        return true;
+
+      }else{
+        return false;
+      }
+
+    } catch (error) {
+      console.error("Server Error:", error);
+      return false;
+    }
+    
+  };
+
   const onChangeRegisterInput = (e) => {
     setRegisterData({
       ...registerData,
@@ -44,14 +73,14 @@ export const useAuth = () => {
       });
       const data = await response.json();
 
-
-
       return data;
       
     } catch (error) {
+
       console.error("Server Error:", error);
 
       return false;
+
     }
 
 
@@ -101,7 +130,7 @@ export const useAuth = () => {
         body: JSON.stringify(authToken),
       });
       const data = await response.json();
-    console.log(data)
+      console.log(data)
 
       setIsLoggedIn( data.valid);
     } catch (error) {
@@ -130,6 +159,7 @@ export const useAuth = () => {
     isLoggedIn, 
     setIsLoggedIn,
     checkSession,
+    onLogout
     
   };
 };
