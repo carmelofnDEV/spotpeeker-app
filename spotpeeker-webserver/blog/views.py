@@ -319,13 +319,24 @@ def getUserProfileData(request,username):
 
             try:
                 profile_likes=0
+
+                current_profile = getPerfilRequest(request)
+
                 perfil = PerfilUsuario.objects.get(usuario=user)
+
+                followers = Seguidor.objects.filter(siguiendo=perfil)
+
+
+                follow = Seguidor.objects.filter(seguidor=current_profile,siguiendo=perfil)
+
                 perfil_usuario = {
                     "foto_perfil": perfil.foto_perfil.url,
                     "aka": perfil.aka,
                     "biografia": perfil.biografia,
                     "es_privado": perfil.perfil_privado,
                     "es_premium": perfil.premium,
+                    "followers": len(followers),
+                    "followed": follow.exists(),
                 }
 
                 publicaciones = []
@@ -335,7 +346,6 @@ def getUserProfileData(request,username):
                     post_tags = list(post.etiquetas.all().values())
                     post_photos = list(post.imagenes.all().values())
 
-                    current_profile = getPerfilRequest(request)
 
                     existing_like = MeGusta.objects.filter(usuario=current_profile, publicacion=post)
 
@@ -377,11 +387,13 @@ def getUserProfileData(request,username):
                     }
                     publicaciones.append(publicacion)
 
+                
+
                 perfil_usuario["likes_perfil"] = profile_likes
+                perfil_usuario["num_post"] = len(publicaciones)
+
                 data["publicaciones"] = publicaciones
                 data["perfil"] = perfil_usuario
-
-
             except PerfilUsuario.DoesNotExist:
                 data["status"] = "error"
                 data["message"] = "Perfil not found"
@@ -596,5 +608,46 @@ def commentPost(request):
                         "status":"success",
                         "comment":comment,
                         }
+
+    return JsonResponse(data)  
+
+
+@csrf_exempt
+def follow(request):
+    data = {"status":"error"}
+
+    if request.method == "POST":
+
+        perfil_data = json.loads(request.body.decode('utf-8'))
+
+        perfil_username = perfil_data["profile"]
+
+        try:
+
+            usuario = Usuario.objects.get(username=perfil_username)
+            perfil = PerfilUsuario.objects.get(usuario=usuario)
+            
+        except Usuario.DoesNotExist:
+            return JsonResponse(data) 
+        except PerfilUsuario.DoesNotExist:
+            return JsonResponse(data) 
+        
+        if perfil:
+
+            current_user_profile = getPerfilRequest(request)
+
+            if current_user_profile:
+
+                existing_follow = Seguidor.objects.filter(seguidor=current_user_profile, siguiendo=perfil)
+                
+                
+                if existing_follow.exists():
+                    existing_follow.delete()
+                    data = {"status": "success","action":"unfollowed"}
+
+                else:
+                    seguidor = Seguidor(seguidor=current_user_profile, siguiendo=perfil)
+                    seguidor.save()
+                    data = {"status": "success","action":"followed"}
 
     return JsonResponse(data)  

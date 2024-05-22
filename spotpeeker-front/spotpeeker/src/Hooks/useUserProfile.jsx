@@ -3,6 +3,7 @@ import { useState } from "react";
 import { env } from "../env";
 
 export const useUserProfile = () => {
+  
   const SERVER_URL = env.SERVER_URL;
 
   const getUserProfile = async (username) => {

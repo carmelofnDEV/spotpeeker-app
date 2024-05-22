@@ -26,7 +26,7 @@ export const TagInput = ({setPostTags}) => {
     return (
       <div>
 
-        <div>
+        <div> 
             <div className='flex gap-3'>
                 <input
                     className='bg-[#fafafa] py-1 px-2 rounded-md'
@@ -39,7 +39,7 @@ export const TagInput = ({setPostTags}) => {
             </div>
 
             </div>
-            <div className='flex flex-wrap gap-3 p-3'>
+            <div className='flex flex-wrap gap-3 p-3 max-h-full overeflow-y'>
             {tags.map((tag, index) => (
                 <div key={index} className="tag flex gap-2 bg-[#fafafa] py-1 px-2 rounded-md">
                 {tag}

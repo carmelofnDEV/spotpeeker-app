@@ -31,6 +31,8 @@ urlpatterns = [
     #social
     path('like-post/', views.likePost, name='likePost'),
     path('comment-post/', views.commentPost, name='commentPost'),
+    path('follow/', views.follow, name='follow'),
+
 
 
     

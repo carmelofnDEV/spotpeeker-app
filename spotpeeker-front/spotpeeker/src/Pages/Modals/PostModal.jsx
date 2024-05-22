@@ -85,7 +85,7 @@ export const PostModal = ({ onClose, onSuccess, singlePost }) => {
         </div>
         <div className="flex w-full">
           <Carousel
-            className="flex bg-[#dddddd] items-center justify-center w-[800px] p-3"
+            className="flex bg-[#dddddd] items-center justify-center w-[600px] p-3"
             showThumbs={false}
             emulateTouch={true}
           >
