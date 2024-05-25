@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate,Navigate } from "react-router-dom";
 import { Home } from "./Pages/Home";
 import { Login } from "./Pages/Auth/Login";
 import { Register } from "./Pages/Auth/Register";
@@ -25,7 +25,14 @@ export const App = () => {
           </>
           ) : (
 
-            <Route path="/*" element={<Home />} />
+            <>
+            
+            <Route path="/perfil" element={<Navigate to="/login" />}/>
+            <Route path="/*" element={<Navigate to="/" />}/>
+
+            <Route path="/publicar" element={<Navigate to="/login" />}/>
+            </>
+
 
           )}
           <Route path="/usuario/:username" element={<Perfil />} />

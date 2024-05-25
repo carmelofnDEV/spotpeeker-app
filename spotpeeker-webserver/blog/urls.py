@@ -33,15 +33,7 @@ urlpatterns = [
     path('comment-post/', views.commentPost, name='commentPost'),
     path('follow/', views.follow, name='follow'),
 
-
-
-    
-
-
-
-
-
-
-    
+    #feed
+    path('user_feed/', views.getUserFeed, name='userFeed'),
 
 ]

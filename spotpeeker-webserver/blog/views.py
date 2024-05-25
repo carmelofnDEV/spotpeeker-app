@@ -30,6 +30,10 @@ import hashlib
 from datetime import datetime,timedelta
 from django.utils import timezone
 
+#Trabajar con aleatoriedad
+from random import shuffle
+
+
 #testear que el servidor devuelve json correctamente
 def test(request):
     data = {
@@ -447,7 +451,7 @@ def uploadPicProfile(request):
             data={"status":"success"} 
 
     return JsonResponse(data)
-
+ 
 @csrf_exempt
 def logout(request):
 
@@ -614,6 +618,7 @@ def commentPost(request):
 
 @csrf_exempt
 def follow(request):
+    
     data = {"status":"error"}
 
     if request.method == "POST":
@@ -651,3 +656,77 @@ def follow(request):
                     data = {"status": "success","action":"followed"}
 
     return JsonResponse(data)  
+
+def obtener_publicaciones(perfil):
+    publicaciones = []
+
+    posts = Publicacion.objects.filter(autor=perfil).order_by('-creado_en')[:3]
+
+    for post in posts:
+        post_tags = list(post.etiquetas.all().values())
+        post_photos = list(post.imagenes.all().values())
+
+        existing_like = MeGusta.objects.filter(usuario=perfil, publicacion=post)
+
+        comments = Comentario.objects.filter(publicacion=post)
+
+        post_comments = []
+
+        for comment in comments:
+            new_comment = {
+                "pic": comment.autor.foto_perfil.url,
+                "username": comment.autor.usuario.username,
+                "content": comment.texto
+            }
+            post_comments.append(new_comment)
+
+        try:
+            likes = MeGusta.objects.filter(publicacion=post)
+            likes = len(likes)
+
+        except (SessionCookie.DoesNotExist, Usuario.DoesNotExist):
+            likes = 0
+
+        publicacion = {
+            "id": post.pk,
+            "autor": post.autor.usuario.username,
+            'descripcion': post.descripcion,
+            'ubicacion': post.ubicacion,
+            'etiquetas': post_tags,
+            'imagenes': post_photos,
+            "likes": likes,
+            "liked_by_user": existing_like.exists(),
+            "comentarios": post_comments
+        }
+        publicaciones.append(publicacion)
+
+    return publicaciones
+
+@csrf_exempt
+def getUserFeed(request):
+    data = {"status": "error"}
+    publicaciones=[]
+
+    if request.method == "POST":
+        perfil = getPerfilRequest(request)
+
+        if perfil:
+            seguidos = Seguidor.objects.filter(seguidor=perfil)
+
+            if seguidos:
+                for seguido in seguidos:
+                    publicaciones += obtener_publicaciones(seguido.siguiendo)
+                    data["status"] = "success"
+        else:  
+            perfiles_aleatorios = PerfilUsuario.objects.filter(perfil_privado=False).order_by('?')[:3]
+
+            for perfil_random in perfiles_aleatorios:
+                publicaciones += (obtener_publicaciones(perfil_random))
+                data["status"] = "success"
+
+        shuffle(publicaciones)
+        data["publicaciones"] = publicaciones
+    return JsonResponse(data)
+
+
+

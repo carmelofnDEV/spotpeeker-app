@@ -5,46 +5,28 @@ export const Modal = ({ isOpen, onClose, children }) => {
     return null;
   } else {
     return (
-      <div className="fixed top-0 left-0 w-full h-full flex items-start justify-center bg-black bg-opacity-50 z-40">
-        <div className=" p-8 rounded-lg shadow-md mt-[5%]">
-          <div className="flex justify-end">
-            <button className="bg-white " onClick={onClose}>
-
+      <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-40">
+        <div className="absolute bg-black bg-opacity-10 inset-0"></div>
+        <div className="relative p-8 rounded-lg shadow-md  w-[70%]">
+          <div className="absolute top-0 right-0 p-2">
+            <button className="text-white bg-black p-1 rounded-lg" onClick={onClose}>
               <svg
-                width="20px"
-                height="20px"
-                viewBox="-0.5 0 25 25"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-
-                <g id="SVGRepo_bgCarrier" strokeWidth={0} />
-
-                <g
-                  id="SVGRepo_tracerCarrier"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M3 21.32L21 3.32001"
-                    stroke="#000000"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M3 3.32001L21 21.32"
-                    stroke="#000000"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="feather feather-x"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
           </div>
-
           {children}
         </div>
       </div>
