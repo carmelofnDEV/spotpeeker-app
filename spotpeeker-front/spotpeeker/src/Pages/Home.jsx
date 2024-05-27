@@ -1,12 +1,13 @@
 import { env } from "../env";
 import { PostModal } from "./Modals/PostModal";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "./Components/Modal";
 
-export const Home = () => {
+export const Home = ({ logged }) => {
   const SERVER_URL = env.SERVER_URL;
 
   const [userFeed, setUserFeed] = useState([]);
+  const [loaded, setLoaded] = useState(false);
 
   const getFeed = async () => {
     try {
@@ -21,27 +22,29 @@ export const Home = () => {
       if (data.status == "success") {
         console.log(data);
         setUserFeed(data.publicaciones);
+        setLoaded(true);
       }
     } catch (error) {
       console.error("Error al cargar feed:", error);
     }
   };
-  const [modalOpen, setModalOpen] = useState(false);
 
-  const openModal = () => {
-    setModalOpen(true);
+  const [openModalIndex, setOpenModalIndex] = useState(null);
+
+  const openModal = (index) => {
+    setOpenModalIndex(index);
   };
 
   const closeModal = () => {
-    setModalOpen(false);
+    setOpenModalIndex(null);
   };
 
   useEffect(() => {
     getFeed();
   }, []);
 
-  return (
-    <>
+  if (loaded) {
+    return (
       <div className="flex justify-center items-center mt-[2vh]">
         <div className="grid grid-cols-1 gap-4">
           {userFeed.map((post, index) => (
@@ -50,12 +53,15 @@ export const Home = () => {
               className="flex flex-col justify-center bg-white bg-opacity-30 items-center"
             >
               <div className="w-full bg-white p-3">
-                <div className="flex  ">
+                <div className="flex">
                   <p>#{post.autor}</p>
                 </div>
               </div>
-              <div className="flex  justify-center items-center w-full h-[60vh] ">
-                <button onClick={openModal} className="group inline-block relative w-full h-full ">
+              <div className="flex justify-center items-center w-full h-[60vh]">
+                <button
+                  onClick={() => openModal(index)}
+                  className="group inline-block relative w-full h-full"
+                >
                   <img
                     src={`${SERVER_URL}/media/${post.imagenes[0].imagen}`}
                     alt="..."
@@ -64,23 +70,28 @@ export const Home = () => {
                 </button>
               </div>
               <div className="w-full bg-white p-3">
-                <div className="flex justify-end ">
+                <div className="flex justify-end">
                   <p>{post.likes} peeks</p>
                 </div>
               </div>
 
-              <Modal isOpen={modalOpen} onClose={closeModal}>
-                <PostModal
-                  singlePost={post}
-                  isOwner={false}
-                  handleOnFollow={true}
-                  isFollowed={true}
-                />
-              </Modal>
+              {openModalIndex === index && (
+                <Modal isOpen={true} onClose={closeModal}>
+                  <PostModal
+                    singlePost={post}
+                    isOwner={false}
+                    handleOnFollow={true}
+                    isFollowed={true}
+                    logged={logged}
+                  />
+                </Modal>
+              )}
             </div>
           ))}
         </div>
       </div>
-    </>
-  );
+    );
+  } else {
+    return <div>Loading...</div>;
+  }
 };

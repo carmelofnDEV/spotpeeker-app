@@ -3,7 +3,7 @@ import { env } from "../env";
 import { Modal } from "./Components/Modal";
 import { PostModal } from "./Modals/PostModal";
 
-export const PostPerfil = ({ postPerfil ,isOwner,handleOnFollow,isFollowed}) => {
+export const PostPerfil = ({ postPerfil ,isOwner,}) => {
   const SERVER_URL = env.SERVER_URL;
   const [modalOpen, setmodalOpen] = useState(false);
 
@@ -78,7 +78,7 @@ export const PostPerfil = ({ postPerfil ,isOwner,handleOnFollow,isFollowed}) => 
         </div>
       </button>
       <Modal isOpen={modalOpen} onClose={closeModal}>
-        <PostModal singlePost={postPerfil} isOwner={isOwner} handleOnFollow={handleOnFollow} isFollowed={isFollowed} />
+        <PostModal singlePost={postPerfil} isOwner={isOwner}  />
       </Modal>
     </>
   );

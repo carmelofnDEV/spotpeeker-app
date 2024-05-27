@@ -660,7 +660,10 @@ def follow(request):
 def obtener_publicaciones(perfil):
     publicaciones = []
 
-    posts = Publicacion.objects.filter(autor=perfil).order_by('-creado_en')[:3]
+    if(perfil):
+        posts = Publicacion.objects.filter(autor=perfil).order_by('-creado_en')[:3]
+    else:
+        posts = Publicacion.objects.filter(Q(autor__perfil_privado=False) & ~Q(ubicacion=[])).order_by('?')[:10]
 
     for post in posts:
         post_tags = list(post.etiquetas.all().values())
@@ -727,6 +730,24 @@ def getUserFeed(request):
         shuffle(publicaciones)
         data["publicaciones"] = publicaciones
     return JsonResponse(data)
+
+@csrf_exempt
+def getDiscover(request):
+    data = {"status": "error"}
+    publicaciones=[]
+
+    if request.method == "POST":
+        perfil = getPerfilRequest(request)
+        publicaciones += obtener_publicaciones(False)
+        data["status"] = "success"
+        
+        shuffle(publicaciones)
+        data["markers"] = publicaciones
+
+    return JsonResponse(data)
+
+
+
 
 
 

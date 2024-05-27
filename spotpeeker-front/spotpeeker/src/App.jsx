@@ -6,6 +6,7 @@ import { Perfil } from "./Pages/Perfil";
 import { useAuth } from "./Hooks/Auth/useAuth";
 import { Navbar } from "./Pages/Navbar";
 import { Publicar } from "./Pages/Publicar";
+import { Descubrir } from "./Pages/Descubrir";
 
 export const App = () => {
 
@@ -36,9 +37,11 @@ export const App = () => {
 
           )}
           <Route path="/usuario/:username" element={<Perfil />} />
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home logged={isLoggedIn}/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/descubrir" element={<Descubrir logged={isLoggedIn}/>} />
+
         </Routes>
     </>
   )

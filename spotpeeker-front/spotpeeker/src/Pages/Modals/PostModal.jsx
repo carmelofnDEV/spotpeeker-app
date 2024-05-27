@@ -1,23 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { env } from "../../env";
 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
 import { GMapStatic } from "../Components/GMapStatic";
+import { useFollow } from "../../Hooks/useFollow";
 
 export const PostModal = ({
   onClose,
-  onSuccess,
-  singlePost,
-  handleOnFollow,
   isFollowed,
+  singlePost,
   isOwner,
+  logged,
 }) => {
+  const { follow, setFollow, onFollow } = useFollow({
+    username: singlePost.autor,
+    isFollow: isFollowed
+  });
+
   const SERVER_URL = env.SERVER_URL;
 
   const [isLiking, setIsLiking] = useState(singlePost.liked_by_user);
-  const [postComments, setPostComments] = useState(singlePost.comentarios);
+  const [postComments, setPostComments] = useState([]);
 
+  const handleOnFollow = async () => {
+    const resp = await onFollow();
+  };
   const handleLike = async () => {
     const data = {
       post: singlePost.id,
@@ -79,6 +87,11 @@ export const PostModal = ({
       }
     }
   };
+
+  useEffect(() => {
+    setPostComments(singlePost.comentarios);
+  }, []);
+
   return (
     <>
       <div className="flex flex-col w-full items-center justify-center p-10">
@@ -97,7 +110,7 @@ export const PostModal = ({
                 onClick={handleOnFollow}
                 className="text-lg px-4 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
               >
-                {isFollowed ? "Siguiendo" : "Seguir"}
+                {follow ? "Siguiendo" : "Seguir"}
               </button>
             )}
           </div>
@@ -177,37 +190,41 @@ export const PostModal = ({
               </ul>
             </div>
 
-            <form
-              onSubmit={handleComment}
-              className="flex w-full p-3 bg-gray-100 rounded"
-            >
-              <textarea
-                name="comentario"
-                id="comentario"
-                className="w-full p-2 bg-white rounded-md focus:outline-none focus:ring focus:ring-blue-400"
-                placeholder="Escribe un comentario..."
-              ></textarea>
-              <button
-                type="submit"
-                className="p-2 ml-2 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring focus:ring-blue-400"
+            {logged ? (
+              <form
+                onSubmit={handleComment}
+                className="flex w-full p-3 bg-gray-100 rounded"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="feather feather-send"
+                <textarea
+                  name="comentario"
+                  id="comentario"
+                  className="w-full p-2 bg-white rounded-md focus:outline-none focus:ring focus:ring-blue-400"
+                  placeholder="Escribe un comentario..."
+                ></textarea>
+                <button
+                  type="submit"
+                  className="p-2 ml-2 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring focus:ring-blue-400"
                 >
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </form>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="feather feather-send"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
+              </form>
+            ) : (
+              <>dasds</>
+            )}
           </div>
         </div>
 
@@ -268,7 +285,6 @@ export const PostModal = ({
                 </svg>
               )}
             </button>
-    
           </div>
         </div>
       </div>

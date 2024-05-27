@@ -205,6 +205,7 @@ export const Perfil = () => {
                       isOwner={isOwner}
                       handleOnFollow={handleOnFollow}
                       isFollowed={isFollowed}
+                      logged={true}
                     />
                   </Suspense>
                 ))}

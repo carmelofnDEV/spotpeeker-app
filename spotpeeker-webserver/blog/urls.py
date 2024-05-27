@@ -35,5 +35,7 @@ urlpatterns = [
 
     #feed
     path('user_feed/', views.getUserFeed, name='userFeed'),
+    path('discover/', views.getDiscover, name='discover'),
+
 
 ]
