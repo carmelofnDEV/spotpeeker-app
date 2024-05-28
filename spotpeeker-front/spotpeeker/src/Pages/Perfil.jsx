@@ -7,7 +7,7 @@ import { PostPerfil } from "./PostPerfil";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "../Hooks/useUser";
 
-export const Perfil = () => {
+export const Perfil = ({ logged = false }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { username } = useParams();
@@ -15,7 +15,7 @@ export const Perfil = () => {
 
   const [hoverImg, setHoverImg] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
-  const [usernameProfile, setUsernameProfile] = useState();
+  const [usernameProfile, setUsernameProfile] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
   const [userData, setUserData] = useState({});
@@ -27,7 +27,6 @@ export const Perfil = () => {
   const { getUserProfile } = useUserProfile();
   const { getUser } = useUser();
 
-
   const openModal = () => setModalOpen(true);
   const modalOnClose = () => setModalOpen(false);
   const onSuccess = () => fetchData();
@@ -36,21 +35,31 @@ export const Perfil = () => {
     const fetchUserData = async () => {
       try {
         const user = await getUser();
-        setCurrentUser(user.user.username);
-        if (pathname === "/perfil") {
-          setUsernameProfile(user.user.username);
-          setIsOwner(true);
+        if (user && user.user && user.user.username) {
+          setCurrentUser(user.user.username);
+          if (pathname === "/perfil") {
+            setUsernameProfile(user.user.username);
+            setIsOwner(true);
+          } else {
+            setUsernameProfile(username);
+          }
         } else {
-          setUsernameProfile(username);
+          setCurrentUser(null);
         }
       } catch (error) {
         console.error("Error al obtener el usuario:", error);
         setCurrentUser(null);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [pathname, username]);
+    if (logged) {
+      fetchUserData();
+    } else {
+      setUsernameProfile(username);
+    }
+  }, [pathname, username, logged, getUser]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,14 +73,17 @@ export const Perfil = () => {
           setIsFollowed(data.perfil.followed);
           setPosts(data.publicaciones);
           setLoading(false);
+
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
 
-    fetchData();
-  }, [usernameProfile]);
+    if (usernameProfile) {
+      fetchData();
+    }
+  }, [usernameProfile, getUserProfile]);
 
   useEffect(() => {
     setIsOwner(currentUser === usernameProfile);
@@ -98,10 +110,11 @@ export const Perfil = () => {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-
-  if (!loading) {
-    return (
+  return (
       <>
         <>
           <div className="min-w-full min-h-full justify-center items-center">
@@ -221,5 +234,5 @@ export const Perfil = () => {
         </>
       </>
     );
-  }
+  
 };

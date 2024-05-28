@@ -20,7 +20,7 @@ export const App = () => {
         <Routes>
           {isLoggedIn ? (
           <>
-            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/perfil" element={<Perfil logged={isLoggedIn}/>} />
             <Route path="/publicar" element={<Publicar />} />
 
           </>

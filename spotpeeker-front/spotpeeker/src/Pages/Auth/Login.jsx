@@ -24,9 +24,9 @@ export const Login = () => {
     }else{
       console.log("cookie", data);
       Cookies.set('auth_token', data.response.cookie, { expires: 1, path: '/' });
+      navigate("/pefil")
 
       setErrors({});
-      navigate("/")
 
     }
   }
