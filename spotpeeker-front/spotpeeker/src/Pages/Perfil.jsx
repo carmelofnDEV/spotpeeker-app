@@ -59,7 +59,7 @@ export const Perfil = ({ logged = false }) => {
     } else {
       setUsernameProfile(username);
     }
-  }, [pathname, username, logged, getUser]);
+  }, [pathname, username, logged]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,7 +83,7 @@ export const Perfil = ({ logged = false }) => {
     if (usernameProfile) {
       fetchData();
     }
-  }, [usernameProfile, getUserProfile]);
+  }, [usernameProfile]);
 
   useEffect(() => {
     setIsOwner(currentUser === usernameProfile);
@@ -218,7 +218,7 @@ export const Perfil = ({ logged = false }) => {
                       isOwner={isOwner}
                       handleOnFollow={handleOnFollow}
                       isFollowed={isFollowed}
-                      logged={true}
+                      logged={logged}
                     />
                   </Suspense>
                 ))}

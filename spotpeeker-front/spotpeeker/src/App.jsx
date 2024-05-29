@@ -28,15 +28,12 @@ export const App = () => {
 
             <>
             
-            <Route path="/perfil" element={<Navigate to="/login" />}/>
             <Route path="/*" element={<Navigate to="/" />}/>
-
-            <Route path="/publicar" element={<Navigate to="/login" />}/>
             </>
 
 
           )}
-          <Route path="/usuario/:username" element={<Perfil />} />
+          <Route path="/usuario/:username" element={<Perfil logged={isLoggedIn}/>} />
           <Route path="/" element={<Home logged={isLoggedIn}/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

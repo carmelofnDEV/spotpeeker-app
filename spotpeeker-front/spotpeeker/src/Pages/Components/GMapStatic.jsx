@@ -12,7 +12,6 @@ export const GMapStatic = ({ position}) => {
     height: "100%",
     width: "100%",
   };
-  console.log(position)
 
 
   return (

@@ -15,11 +15,11 @@ export const PostModal = ({
 }) => {
   const { follow, setFollow, onFollow } = useFollow({
     username: singlePost.autor,
-    isFollow: isFollowed
+    isFollow: isFollowed,
   });
 
   const SERVER_URL = env.SERVER_URL;
-
+  console.log(JSON.parse(singlePost.etiquetas[0].nombre));
   const [isLiking, setIsLiking] = useState(singlePost.liked_by_user);
   const [postComments, setPostComments] = useState([]);
 
@@ -96,7 +96,39 @@ export const PostModal = ({
     <>
       <div className="flex flex-col w-full items-center justify-center p-10">
         <div className="flex w-full justify-between items-center bg-gray-300 p-3 rounded-t-lg">
-          <div className="text-lg font-semibold"># {singlePost.autor}</div>
+          <div className="flex items-center gap-1 bg-green-600 py-1 px-4 rounded-lg ">
+            <span className="text-[18px] ">{singlePost.likes}</span>
+            <svg
+              width="25px"
+              height="25px"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g id="SVGRepo_bgCarrier" strokeWidth={0} />
+              <g
+                id="SVGRepo_tracerCarrier"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M15.0007 12C15.0007 13.6569 13.6576 15 12.0007 15C10.3439 15 9.00073 13.6569 9.00073 12C9.00073 10.3431 10.3439 9 12.0007 9C13.6576 9 15.0007 10.3431 15.0007 12Z"
+                  stroke="#000000"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z"
+                  stroke="#000000"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </g>
+            </svg>
+          </div>
           <div className="flex items-center space-x-2">
             {isOwner ? (
               <a
@@ -193,14 +225,15 @@ export const PostModal = ({
             {logged ? (
               <form
                 onSubmit={handleComment}
-                className="flex w-full p-3 bg-gray-100 rounded"
+                className="flex w-full p-3 bg-gray-100 rounded-t-md  "
               >
-                <textarea
+                <input
+                  type="text"
                   name="comentario"
                   id="comentario"
                   className="w-full p-2 bg-white rounded-md focus:outline-none focus:ring focus:ring-blue-400"
                   placeholder="Escribe un comentario..."
-                ></textarea>
+                />
                 <button
                   type="submit"
                   className="p-2 ml-2 bg-gray-300 rounded-md hover:bg-gray-400 focus:outline-none focus:ring focus:ring-blue-400"
@@ -223,7 +256,33 @@ export const PostModal = ({
                 </button>
               </form>
             ) : (
-              <>dasds</>
+              <div></div>
+            )}
+            <div className="flex p-3 pr-0 border-t-1 bg-gray-100">
+              <div className="text-[18px] font-[400]">
+                <a
+                  href={`/usuario/${singlePost.autor}`}
+                  className="text-[18px] font-[600] mr-1 hover:!border-b border-black"
+                >
+                  #{singlePost.autor}:
+                </a>
+                {singlePost.descripcion} esto es una biografia de prueba, para
+                ver como quedaría.
+              </div>
+            </div>
+            {singlePost.etiquetas[0].nombre != "[]" ? (
+              <div className="bg-gray-100 flex gap-3 pl-3">
+                <p className="font-[800]">Tags: </p>
+                {JSON.parse(singlePost.etiquetas[0].nombre).map(
+                  (element, index) => (
+                    <p key={`${index}-tag`} className="italic">
+                      {element}
+                    </p>
+                  )
+                )}
+              </div>
+            ) : (
+              <div></div>
             )}
           </div>
         </div>

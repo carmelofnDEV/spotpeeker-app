@@ -130,7 +130,7 @@ export const useAuth = () => {
         body: JSON.stringify(authToken),
       });
       const data = await response.json();
-      console.log(data)
+      console.log("logged?",data)
 
       setIsLoggedIn( data.valid);
     } catch (error) {

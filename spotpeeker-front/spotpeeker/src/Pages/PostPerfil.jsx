@@ -3,7 +3,7 @@ import { env } from "../env";
 import { Modal } from "./Components/Modal";
 import { PostModal } from "./Modals/PostModal";
 
-export const PostPerfil = ({ postPerfil ,isOwner,}) => {
+export const PostPerfil = ({ postPerfil ,isOwner,logged}) => {
   const SERVER_URL = env.SERVER_URL;
   const [modalOpen, setmodalOpen] = useState(false);
 
@@ -78,7 +78,7 @@ export const PostPerfil = ({ postPerfil ,isOwner,}) => {
         </div>
       </button>
       <Modal isOpen={modalOpen} onClose={closeModal}>
-        <PostModal singlePost={postPerfil} isOwner={isOwner}  />
+        <PostModal singlePost={postPerfil} isOwner={isOwner}  logged={logged}/>
       </Modal>
     </>
   );
