@@ -1,8 +1,14 @@
+
 import { env } from "../../env";
 import { useAuth } from "../../Hooks/Auth/useAuth";
 import Cookies from 'js-cookie';
+import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
+  
+
+
+  const navigate = useNavigate();
   const SERVER_URL = env.SERVER_URL;
 
   
@@ -11,7 +17,6 @@ export const Login = () => {
     onChangeLoginInput,
     errors,
     setErrors,
-    navigate,
   } = useAuth();
 
   const loginCredentials = async (event) => {
@@ -24,7 +29,7 @@ export const Login = () => {
     }else{
       console.log("cookie", data);
       Cookies.set('auth_token', data.response.cookie, { expires: 1, path: '/' });
-      navigate("/pefil")
+      navigate("/")
 
       setErrors({});
 

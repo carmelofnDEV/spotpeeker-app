@@ -37,5 +37,12 @@ urlpatterns = [
     path('user_feed/', views.getUserFeed, name='userFeed'),
     path('discover/', views.getDiscover, name='discover'),
 
+    #profile
+    path('notifications/', views.notifications, name='notifications'),
+    path('followers-list/', views.followers_list, name='followers-list'),
+
+
+   
+
 
 ]

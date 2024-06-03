@@ -80,22 +80,18 @@ class Seguidor(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
 
 
-class Amistad(models.Model):
-    usuario1 = models.ForeignKey(PerfilUsuario, related_name='amistades_usuario1', on_delete=models.CASCADE)
-    usuario2 = models.ForeignKey(PerfilUsuario, related_name='amistades_usuario2', on_delete=models.CASCADE)
-    creado_en = models.DateTimeField(auto_now_add=True)
 
+class Notificacion(models.Model):
 
-class Grupo(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
-    administrador = models.ForeignKey(PerfilUsuario, related_name='grupos_administrados', on_delete=models.CASCADE)
-    miembros = models.ManyToManyField(PerfilUsuario, related_name='grupos')
-    creado_en = models.DateTimeField(auto_now_add=True)
+    ACTIONS = [
+        ('l', 'Like'),
+        ('f', 'Follow'),
+    ]
+     
+    perfil_emisor = models.ForeignKey(PerfilUsuario, on_delete=models.CASCADE,related_name="emisor")
+    perfil_receptor = models.ForeignKey(PerfilUsuario, on_delete=models.CASCADE,related_name="receptor")
+    action = models.CharField(max_length=2, choices=ACTIONS)
+    publicacion = models.ForeignKey(Publicacion, null=True,on_delete=models.CASCADE, related_name='publicacion')
+    vista = models.BooleanField(default=False)
 
-class MiembroGrupo(models.Model):
-    grupo = models.ForeignKey(Grupo, related_name='miembros_grupo', on_delete=models.CASCADE)
-    usuario = models.ForeignKey(PerfilUsuario, related_name='grupos_usuarios', on_delete=models.CASCADE)
-    es_administrador = models.BooleanField(default=False)
-    creado_en = models.DateTimeField(auto_now_add=True)
 

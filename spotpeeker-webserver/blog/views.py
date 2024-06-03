@@ -4,6 +4,11 @@ from .models import *
 from django.shortcuts import get_object_or_404
 
 
+# transformar imagen
+from wand.image import Image as WandImage
+from django.core.files.base import ContentFile
+
+
 #Comparar objetos
 from django.db.models import Q
 
@@ -436,22 +441,33 @@ def getPerfilRequest(request):
 
 
 #actualiza la foto de perfil de un usuario
+
 @csrf_exempt
 def uploadPicProfile(request):
-    data={"status":"error"}
+    data = {"status": "error"}
 
     if request.method == 'POST' and request.FILES['pic']:
         pic = request.FILES['pic']
         
         perfil = getPerfilRequest(request)
+
         if perfil:
-            pic.name = f"{perfil.usuario}_pic_profile"
-            perfil.foto_perfil = pic
-            perfil.save()
-            data={"status":"success"} 
+            pic_name = f"{perfil.usuario}_pic_profile.webp"
+            # Leer la imagen en memoria
+            pic_content = pic.read()
+
+            # Convertir la imagen a formato WebP usando Wand
+            with WandImage(blob=pic_content) as img:
+                webp_content = img.make_blob(format='webp')
+
+            # Guardar la imagen convertida en el perfil
+            perfil.foto_perfil.save(pic_name, ContentFile(webp_content), save=True)
+
+            data = {"status": "success"}
 
     return JsonResponse(data)
- 
+
+
 @csrf_exempt
 def logout(request):
 
@@ -574,10 +590,14 @@ def likePost(request):
                 if existing_like.exists():
                     existing_like.delete()
                     data = {"status": "success","action":"unliked"}
+                    Notificacion.objects.filter(publicacion=post, perfil_emisor=perfil, perfil_receptor=post.autor, action="l").delete()
+
 
                 else:
                     like = MeGusta(usuario=perfil,publicacion=post)
                     like.save()
+                    Notificacion.objects.create(publicacion=post, perfil_emisor=perfil, perfil_receptor=post.autor, action="l")
+
                     data = {"status": "success","action":"liked"}
 
     return JsonResponse(data)  
@@ -601,6 +621,7 @@ def commentPost(request):
                 if cont_comentario and len(cont_comentario) > 0:
                     comentario = Comentario(publicacion = post, autor=perfil,texto=cont_comentario)
                     comentario.save()
+                    
 
                     comment = {
                             "pic":perfil.foto_perfil.url,
@@ -648,11 +669,14 @@ def follow(request):
                 
                 if existing_follow.exists():
                     existing_follow.delete()
+                    Notificacion.objects.filter(perfil_emisor=current_user_profile, perfil_receptor=perfil,action="f").delete()
+
                     data = {"status": "success","action":"unfollowed"}
 
                 else:
                     seguidor = Seguidor(seguidor=current_user_profile, siguiendo=perfil)
                     seguidor.save()
+                    Notificacion.objects.create(perfil_emisor=current_user_profile, perfil_receptor=perfil,action="f")
                     data = {"status": "success","action":"followed"}
 
     return JsonResponse(data)  
@@ -737,12 +761,86 @@ def getDiscover(request):
     publicaciones=[]
 
     if request.method == "POST":
-        perfil = getPerfilRequest(request)
+        
         publicaciones += obtener_publicaciones(False)
         data["status"] = "success"
         
         shuffle(publicaciones)
         data["markers"] = publicaciones
+
+    return JsonResponse(data)
+
+
+@csrf_exempt
+def notifications(request):
+    data = {"status": "error"}
+    notificaciones =[]
+
+    if request.method == "POST":
+        perfil = getPerfilRequest(request)
+
+        if perfil:
+
+            notificaciones = Notificacion.objects.filter(perfil_receptor=perfil)
+            new_notificaciones=[]
+            for noti in notificaciones:
+
+                newNot = {
+                    "emisor":noti.perfil_emisor.usuario.username,
+                    "action":noti.action,
+                    "viewed":noti.vista,
+
+                }
+
+                new_notificaciones.append(newNot)
+                noti.vista = True
+                noti.save()
+
+
+            
+            new_notificaciones.reverse()
+            data["status"] = "success"
+            data["notifications"] = new_notificaciones
+
+    return JsonResponse(data)
+
+
+@csrf_exempt
+def followers_list(request):
+
+    data = {"status": "error"}
+    followers =[]
+
+    if request.method == "POST":
+
+
+        perfil_data = json.loads(request.body.decode('utf-8'))
+
+        perfil_username = perfil_data["username"]
+
+        user = Usuario.objects.get(username=perfil_username)
+
+        if user:
+
+            perfil = PerfilUsuario.objects.get(usuario=user)
+
+
+            if perfil:
+
+                followers = Seguidor.objects.filter(siguiendo=perfil)
+                new_followers=[]
+
+                for follower in followers:
+
+                    newFollower = {
+                        "username":follower.seguidor.usuario.username,
+                        "pic":follower.seguidor.foto_perfil.url,
+                    }
+
+                    new_followers.append(newFollower)
+
+                data["status"] = "success"
+                data["followers"] = new_followers
 
     return JsonResponse(data)
 

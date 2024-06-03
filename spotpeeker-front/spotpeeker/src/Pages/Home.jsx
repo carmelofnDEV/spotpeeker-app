@@ -41,7 +41,15 @@ export const Home = ({ logged }) => {
 
   useEffect(() => {
     getFeed();
+
+
   }, []);
+
+  useEffect(() => {
+    if (logged) {
+      
+    }
+  }, [logged]);
 
   if (loaded) {
     return (

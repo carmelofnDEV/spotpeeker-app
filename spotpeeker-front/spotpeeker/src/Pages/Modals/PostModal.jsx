@@ -19,8 +19,7 @@ export const PostModal = ({
   });
 
   const SERVER_URL = env.SERVER_URL;
-  console.log(JSON.parse(singlePost.etiquetas[0].nombre));
-  const [isLiking, setIsLiking] = useState(singlePost.liked_by_user);
+  const [isLiking, setIsLiking] = useState();
   const [postComments, setPostComments] = useState([]);
 
   const handleOnFollow = async () => {
@@ -90,6 +89,8 @@ export const PostModal = ({
 
   useEffect(() => {
     setPostComments(singlePost.comentarios);
+    setIsLiking(singlePost.liked_by_user);
+    console.log(singlePost.liked_by_user);
   }, []);
 
   return (
