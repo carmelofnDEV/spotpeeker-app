@@ -32,6 +32,7 @@ urlpatterns = [
     path('like-post/', views.likePost, name='likePost'),
     path('comment-post/', views.commentPost, name='commentPost'),
     path('follow/', views.follow, name='follow'),
+    path('delete-comment/<int:id>', views.delete_comment, name='delete-comment'),
 
     #feed
     path('user_feed/', views.getUserFeed, name='userFeed'),
@@ -40,6 +41,9 @@ urlpatterns = [
     #profile
     path('notifications/', views.notifications, name='notifications'),
     path('followers-list/', views.followers_list, name='followers-list'),
+    path('get-comments/<int:id>', views.get_comment, name='get-comment'),
+
+
 
 
    

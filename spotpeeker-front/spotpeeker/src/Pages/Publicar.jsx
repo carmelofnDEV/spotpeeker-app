@@ -69,7 +69,6 @@ export const Publicar = () => {
     setPhotos([...photos, ...newPhotos]);
   };
 
-
   const removePhoto = (index) => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
@@ -114,9 +113,9 @@ export const Publicar = () => {
             onSubmit={handleFormSubmit}
             className="flex flex-col  px-10 py-5 rounded-xl gap-5"
           >
-            <div className="w-full ">Fotos</div>
+            <div className="w-full ">Fotos:</div>
             <div className="grid grid-cols-4 gap-3">
-            {photos.map((file, index) => (
+              {photos.map((file, index) => (
                 <div key={index} className="relative group">
                   <img
                     src={URL.createObjectURL(file)}
@@ -144,7 +143,6 @@ export const Publicar = () => {
                   </button>
                 </div>
               ))}
-
 
               {photos.length < 4 ? (
                 <label
@@ -185,7 +183,7 @@ export const Publicar = () => {
 
             <div className="grid grid-cols-2 gap-5 h-50">
               <div>
-                <div className="w-full">Comentario</div>
+                <div className="w-full">Descripción:</div>
                 <textarea
                   id="message"
                   rows="4"
@@ -196,7 +194,7 @@ export const Publicar = () => {
                 ></textarea>
               </div>
               <div>
-                <div className="w-full">Etiquetas</div>
+                <div className="w-full">Etiquetar colaboradores:</div>
 
                 <div className="flex justify-center w">
                   <TagInput setPostTags={setTags} />
@@ -204,7 +202,7 @@ export const Publicar = () => {
               </div>
             </div>
             <div className="w-full h-[300px] ">
-              <div className="w-full">Ubicación</div>
+              <div className="w-full">Ubicación:</div>
 
               <GMap setCoords={setCoords} />
             </div>

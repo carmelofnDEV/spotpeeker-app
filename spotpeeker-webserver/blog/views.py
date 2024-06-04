@@ -358,19 +358,7 @@ def getUserProfileData(request,username):
 
                     existing_like = MeGusta.objects.filter(usuario=current_profile, publicacion=post)
 
-                    comments = Comentario.objects.filter(publicacion=post)
 
-                    post_comments=[]
-
-                    for comment in comments:
-
-                        new_comment={
-                            "pic":comment.autor.foto_perfil.url,
-                            "username":comment.autor.usuario.username,
-                            "content":comment.texto
-                        }
-
-                        post_comments.append(new_comment)
 
                     try:
 
@@ -391,7 +379,6 @@ def getUserProfileData(request,username):
                         'imagenes': post_photos,
                         "likes":likes,
                         "liked_by_user": existing_like.exists(),
-                        "comentarios":post_comments
 
                     }
                     publicaciones.append(publicacion)
@@ -685,7 +672,7 @@ def obtener_publicaciones(perfil):
     publicaciones = []
 
     if(perfil):
-        posts = Publicacion.objects.filter(autor=perfil).order_by('-creado_en')[:3]
+        posts = Publicacion.objects.filter(autor=perfil).order_by('-creado_en')[:10]
     else:
         posts = Publicacion.objects.filter(Q(autor__perfil_privado=False) & ~Q(ubicacion=[])).order_by('?')[:10]
 
@@ -695,17 +682,7 @@ def obtener_publicaciones(perfil):
 
         existing_like = MeGusta.objects.filter(usuario=perfil, publicacion=post)
 
-        comments = Comentario.objects.filter(publicacion=post)
 
-        post_comments = []
-
-        for comment in comments:
-            new_comment = {
-                "pic": comment.autor.foto_perfil.url,
-                "username": comment.autor.usuario.username,
-                "content": comment.texto
-            }
-            post_comments.append(new_comment)
 
         try:
             likes = MeGusta.objects.filter(publicacion=post)
@@ -723,16 +700,15 @@ def obtener_publicaciones(perfil):
             'imagenes': post_photos,
             "likes": likes,
             "liked_by_user": existing_like.exists(),
-            "comentarios": post_comments
         }
         publicaciones.append(publicacion)
 
     return publicaciones
 
+
 @csrf_exempt
 def getUserFeed(request):
-    data = {"status": "error"}
-    publicaciones=[]
+    data = {"status": "error", "publicaciones": []}
 
     if request.method == "POST":
         perfil = getPerfilRequest(request)
@@ -742,19 +718,18 @@ def getUserFeed(request):
 
             if seguidos:
                 for seguido in seguidos:
-                    publicaciones += obtener_publicaciones(seguido.siguiendo)
-                    data["status"] = "success"
-        else:  
-            perfiles_aleatorios = PerfilUsuario.objects.filter(perfil_privado=False).order_by('?')[:3]
+                    data["publicaciones"] += obtener_publicaciones(seguido.siguiendo)
+                shuffle(data["publicaciones"])
+                data["status"] = "success"
+        else:
+            perfiles_aleatorios = PerfilUsuario.objects.filter(perfil_privado=False).order_by('?')[:10]
 
             for perfil_random in perfiles_aleatorios:
-                publicaciones += (obtener_publicaciones(perfil_random))
-                data["status"] = "success"
+                data["publicaciones"] += obtener_publicaciones(perfil_random)
+            shuffle(data["publicaciones"])
+            data["status"] = "success"
 
-        shuffle(publicaciones)
-        data["publicaciones"] = publicaciones
     return JsonResponse(data)
-
 @csrf_exempt
 def getDiscover(request):
     data = {"status": "error"}
@@ -848,4 +823,62 @@ def followers_list(request):
 
 
 
+@csrf_exempt
+def delete_comment(request,id):
 
+    data = {"status": "error"}
+ 
+
+    if request.method == "POST":
+
+
+        perfil = getPerfilRequest(request)
+
+
+
+        if perfil:
+
+            comentario = Comentario.objects.get(pk=id)
+
+
+            if comentario:
+
+                if comentario.autor == perfil or comentario.publicacion.autor == perfil:
+                    comentario.delete()
+                    data["status"] = "success"
+
+
+    return JsonResponse(data)
+
+@csrf_exempt
+def get_comment(request,id):
+
+    data = {"status": "error"}
+
+    
+
+    if request.method == "POST":
+
+        post = Publicacion.objects.get(pk=id)
+        if post:
+
+            comments = Comentario.objects.filter(publicacion=post)
+
+            post_comments=[]
+
+            for comment in comments:
+
+                new_comment={
+                    "pic":comment.autor.foto_perfil.url,
+                    "username":comment.autor.usuario.username,
+                    "content":comment.texto,
+                    "id":comment.pk
+                }
+
+                post_comments.append(new_comment)
+                
+            data["comments"] = post_comments
+            data["status"] = post_comments
+
+
+    return JsonResponse(data)

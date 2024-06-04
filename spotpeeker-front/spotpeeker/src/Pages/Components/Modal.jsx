@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React,{ useState } from "react";
 
 export const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) {
@@ -7,7 +7,7 @@ export const Modal = ({ isOpen, onClose, children }) => {
     return (
       <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-40">
         <div className="absolute bg-black bg-opacity-10 inset-0"></div>
-        <div className="relative p-8 rounded-lg shadow-md  w-[70%]">
+        <div className="relative lg:p-8 rounded-lg shadow-md w-full">
           <div className="absolute top-0 right-0 p-2">
             <button className="text-white bg-black p-1 rounded-lg" onClick={onClose}>
               <svg
