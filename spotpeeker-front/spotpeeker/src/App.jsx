@@ -7,6 +7,7 @@ import { useAuth } from "./Hooks/Auth/useAuth";
 import { Navbar } from "./Pages/Navbar";
 import { Publicar } from "./Pages/Publicar";
 import { Descubrir } from "./Pages/Descubrir";
+import { ChangePassword } from "./Pages/Auth/ChangePassword";
 
 export const App = () => {
   const { isLoggedIn } = useAuth();
@@ -19,6 +20,9 @@ export const App = () => {
             <>
               <Route path="/perfil" element={<Perfil logged={isLoggedIn} />} />
               <Route path="/publicar" element={<Publicar />} />
+              
+              <Route path="/cambiar-contraseña" element={<ChangePassword />} />
+
             </>
           ) : (
             <>

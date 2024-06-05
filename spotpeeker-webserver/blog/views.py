@@ -144,7 +144,7 @@ def register(request):
 
         username = data.get("username")
 
-        if len(username) > 49:
+        if len(username) > 15:
             errors["large_username"] = "El nombre de usuario es demasiado largo."
 
         if checkIfUsernameExist(username):
@@ -881,4 +881,106 @@ def get_comment(request,id):
             data["status"] = post_comments
 
 
+    return JsonResponse(data)
+
+
+@csrf_exempt
+def edit_profile(request):
+
+    data = {"status": "error"}
+    errors={}
+
+    if request.method == "POST":
+
+        username = request.POST.get("username")
+        biografia = request.POST.get("biografia")
+        es_privado = request.POST.get("es_privado")
+        
+        if es_privado == "true":
+            es_privado= True
+        elif es_privado == "false":
+            es_privado= False
+        
+
+        if len(biografia) > 500:
+            errors["large_bio"] = "La biografía es demasiado larga."
+
+        if len(username) > 15:
+            errors["large_username"] = "El nombre de usuario es demasiado largo ."
+
+        user = getUserRequest(request)
+
+        if user.username != username and checkIfUsernameExist(username):
+            errors["username_exist"] = "Vaya... ese nombre de usuarios ya existe."
+
+        if len(errors) == 0:
+
+            perfil = getPerfilRequest(request)
+
+            if perfil and user:
+
+                if not perfil.biografia == biografia:
+                    perfil.biografia = biografia
+
+                if not user.username == username:
+                    user.username = username
+                    user.save()
+
+
+                if not perfil.perfil_privado == es_privado:  
+                    perfil.perfil_privado = es_privado
+
+                perfil.save()
+
+
+
+
+
+
+                data["status"] = "success"
+        else:
+            data["errors"] = errors
+
+    
+
+
+    return JsonResponse(data)
+
+
+#envia un email para cambiar la contraseña
+@csrf_exempt
+def change_password(request):
+
+    data={"status":"error"}
+
+    user = getUserRequest(request)
+
+
+    if user:
+
+        enlace_verificacion = f"{settings.APP_WEB_HOST}/change-password/{user.verification_token}/"
+
+        asunto = "!Cambio de contraseña!"
+
+        mensaje = f"""Hola {user.username},
+
+        Recibes este correo electrónico porque hemos recibido una solicitud para restablecer la contraseña de tu cuenta en Spot Peeker. Si no realizaste esta solicitud, puedes ignorar este mensaje con tranquilidad. No se realizarán cambios en tu cuenta.
+
+        Si solicitaste el restablecimiento de contraseña, puedes proceder siguiendo el enlace a continuación:
+
+        <a href="{enlace_verificacion}">Restablecer Contraseña</a>
+
+        Este enlace expirará en 2 días, así que asegúrate de utilizarlo pronto.
+
+        ¡Gracias!
+
+        Atentamente,
+        El Equipo de Spot Peeker"""
+
+
+        remitente = settings.EMAIL_HOST_USER
+        destinatario = [user.email]
+
+        send_mail(asunto, mensaje, remitente, destinatario)
+        data["status"] = "success"
     return JsonResponse(data)

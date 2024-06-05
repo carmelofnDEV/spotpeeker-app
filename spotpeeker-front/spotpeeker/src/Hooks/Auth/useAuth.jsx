@@ -18,6 +18,34 @@ export const useAuth = () => {
 
   const [errors, setErrors] = useState({});
 
+
+  const handleOnChangePassword = async() => {
+
+    try {
+      const response = await fetch(`${SERVER_URL}/change-password/`, {
+        method: "POST",
+
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      console.log("respuesta servidoraa, ", data);
+
+      if (data.status == "success") {
+
+        return true;
+        
+      }else{
+        return false;
+      }
+
+    } catch (error) {
+      console.error("Server Error:", error);
+      return false;
+    }
+    
+  };
+
   const onLogout = async() => {
 
     try {
@@ -159,7 +187,10 @@ export const useAuth = () => {
     isLoggedIn, 
     setIsLoggedIn,
     checkSession,
-    onLogout
+    onLogout,
+    handleOnChangePassword
+
+
     
   };
 };

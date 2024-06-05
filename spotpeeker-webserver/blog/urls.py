@@ -16,6 +16,8 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('verify-email/<str:token>/', views.verify_mail, name='mail_verify'),
     path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
+    path('change-password/', views.change_password, name='change-password'),
+
 
 
     #getUser
@@ -42,6 +44,7 @@ urlpatterns = [
     path('notifications/', views.notifications, name='notifications'),
     path('followers-list/', views.followers_list, name='followers-list'),
     path('get-comments/<int:id>', views.get_comment, name='get-comment'),
+    path('edit-profile/', views.edit_profile, name='edit-profile'),
 
 
 
