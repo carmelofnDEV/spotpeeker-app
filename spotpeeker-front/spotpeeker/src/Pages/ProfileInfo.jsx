@@ -90,7 +90,7 @@ export const ProfileInfo = ({
                     onClick={openPerfilModal}
                     className="text-[20px] rounded p-1 bg-[#76885b]"
                   >
-                    Editar perfil
+                    Ajustes perfil
                   </button>
 
                   <button

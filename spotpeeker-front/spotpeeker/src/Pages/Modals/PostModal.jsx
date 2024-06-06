@@ -201,17 +201,17 @@ export const PostModal = ({
                 ver como quedaría.
               </div>
             </div>
-            {singlePost.etiquetas[0].nombre != "[]" ? (
+            {singlePost.etiquetas != [] ? (
               <div className="bg-gray-100 flex gap-3 pl-3 pb-2">
                 <p className="font-[800]">Feat: </p>
-                {JSON.parse(singlePost.etiquetas[0].nombre).map(
+                {singlePost.etiquetas.map(
                   (element, index) => (
                     <a
-                      href={`/usuario/${element}`}
+                      href={`/usuario/${element.nombre}`}
                       key={`${index}-tag`}
                       className="italic hover:underline"
                     >
-                      #{element}
+                      #{element.nombre}
                     </a>
                   )
                 )}

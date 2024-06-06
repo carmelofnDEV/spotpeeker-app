@@ -388,6 +388,7 @@ def getUserProfileData(request,username):
                 perfil_usuario["likes_perfil"] = profile_likes
                 perfil_usuario["num_post"] = len(publicaciones)
 
+                publicaciones.reverse()
                 data["publicaciones"] = publicaciones
                 data["perfil"] = perfil_usuario
             except PerfilUsuario.DoesNotExist:
@@ -501,6 +502,9 @@ def uploadPost(request):
             photos_list = []
             photos = request.FILES.getlist('photos')
 
+            tags = json.loads(tags[0])
+
+
             for photo in photos:
                 if photo.size > max_size:
                     errors["max_size"] = "El archivo " + photo.name+ " pesa demasiado. (10MB max)"
@@ -530,7 +534,7 @@ def uploadPost(request):
                         publicacion.imagenes.add(imagen)
                     except Exception as e:
                         errors["server_error_photos"] = f"{e}"
-                
+
                 for tag in tags:
                     try:
                         etiqueta = Etiqueta(nombre=tag)
@@ -923,8 +927,21 @@ def edit_profile(request):
                     perfil.biografia = biografia
 
                 if not user.username == username:
+
+                    past_user = user.username
+                                        
                     user.username = username
+                    
                     user.save()
+                    
+                    etiquetasAsociadas = Etiqueta.objects.filter(nombre=past_user)
+
+                    for etiqueta in etiquetasAsociadas:
+     
+                        etiqueta.nombre = username
+                        etiqueta.save()
+
+
 
 
                 if not perfil.perfil_privado == es_privado:  

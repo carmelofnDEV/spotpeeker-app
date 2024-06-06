@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { env } from "../../env";
-import { useAuth } from "../../Hooks/Auth/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../Hooks/Auth/useAuth";
 
 export const EditProfileModal = ({
   onSuccess,
@@ -9,26 +9,34 @@ export const EditProfileModal = ({
   isOpen,
   onClose,
 }) => {
+  const { onLogout, navigate } = useAuth();
+
+  const handleLogOut = async () => {
+    const resp = await onLogout();
+
+    if (resp) {
+      navigate("/login");
+    }
+  };
+
   const [privateOption, setPrivateOption] = useState(
     profileInfo.profileData.es_privado
   );
-  
-  const [usernameInfo, setUsernameInfo] = useState(
-    profileInfo.userData.username
-  );
-  const [biografia, setBiografia] = useState(profileInfo.profileData.biografia);
+
+  const username = useRef(null);
+  const bio = useRef(null);
+
   const [errors, setErrors] = useState({});
 
-    const navigate = useNavigate()
-  const handleChangePassword = async() => {
-    navigate("/cambiar-contraseña/")
-  }
+  const handleChangePassword = async () => {
+    navigate("/cambiar-contraseña/");
+  };
 
   const handleEdit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append("username", usernameInfo);
-    formData.append("biografia", biografia);
+    formData.append("username", username.current.value);
+    formData.append("biografia", bio.current.value);
     formData.append("es_privado", !privateOption);
 
     try {
@@ -92,6 +100,7 @@ export const EditProfileModal = ({
                     Cambiar usuario:
                   </label>
                   <input
+                    ref={username}
                     required
                     id="usuario"
                     type="text"
@@ -163,6 +172,7 @@ export const EditProfileModal = ({
                     Biografía
                   </label>
                   <textarea
+                    ref={bio}
                     id="biografia"
                     rows="4"
                     className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:"
@@ -215,20 +225,47 @@ export const EditProfileModal = ({
                     <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none  peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
-
-                <div className="">
-                  <button onClick={handleChangePassword} className="flex items-center  gap-1 py-2 px-4 bg-red-500 rounded-lg">
-                    <span className="text-[18px]">Cambiar contraseña</span>
-                    <svg
-                      fill="#000000"
-                      width="20px"
-                      height="20px"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+                <div className="flex mb-10 items-end">
+                  <div>
+                    <button
+                      onClick={handleChangePassword}
+                      className="flex items-center  gap-1 py-2 px-4 bg-red-500 rounded-lg"
                     >
-                      <path d="M12,13a1,1,0,0,0-1,1v3a1,1,0,0,0,2,0V14A1,1,0,0,0,12,13Zm5-4V7A5,5,0,0,0,7,7V9a3,3,0,0,0-3,3v7a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V12A3,3,0,0,0,17,9ZM9,7a3,3,0,0,1,6,0V9H9Zm9,12a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V12a1,1,0,0,1,1-1H17a1,1,0,0,1,1,1Z" />
-                    </svg>
-                  </button>
+                      <span className="text-[16px]">Cambiar contraseña</span>
+                      <svg
+                        fill="#000000"
+                        width="20px"
+                        height="20px"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M12,13a1,1,0,0,0-1,1v3a1,1,0,0,0,2,0V14A1,1,0,0,0,12,13Zm5-4V7A5,5,0,0,0,7,7V9a3,3,0,0,0-3,3v7a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V12A3,3,0,0,0,17,9ZM9,7a3,3,0,0,1,6,0V9H9Zm9,12a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V12a1,1,0,0,1,1-1H17a1,1,0,0,1,1,1Z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex  items-end">
+                  <div>
+                    <button
+                      onClick={handleLogOut}
+                      className="flex items-center  gap-1 py-2 px-4 bg-gray-100 rounded-lg"
+                    >
+                      <span className="text-[16px]">Cerrar sesion</span>
+                      <svg
+                        width="20px"
+                        height="20px"
+                        viewBox="0 0 15 15"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13.5 7.5L10.5 10.75M13.5 7.5L10.5 4.5M13.5 7.5L4 7.5M8 13.5H1.5L1.5 1.5L8 1.5"
+                          stroke="#000000"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="flex w-full bg-gray-200 justify-end p-2">

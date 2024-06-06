@@ -2,23 +2,21 @@ import { useEffect, useState, Suspense } from "react";
 import { useUserProfile } from "../Hooks/useUserProfile";
 import { env } from "../env";
 
-
 import { PostPerfil } from "./PostPerfil";
 import { useLocation, useParams } from "react-router-dom";
 import { useUser } from "../Hooks/useUser";
 import { ProfileInfo } from "./ProfileInfo";
 
+import { ProfileLoader } from "../Loaders/ProfileLoader";
 
 export const Perfil = ({ logged = false }) => {
   const { pathname } = useLocation();
   const { username } = useParams();
   const SERVER_URL = env.SERVER_URL;
 
-
   const [usernameProfile, setUsernameProfile] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
-
 
   const [profileInfo, setProfileInfo] = useState({
     profileData: {},
@@ -32,14 +30,10 @@ export const Perfil = ({ logged = false }) => {
   const { getUserProfile } = useUserProfile();
   const { getUser } = useUser();
 
-  
   const handleEditData = () => {
     fetchUserData();
     fetchData();
-
-  }
-
-
+  };
 
   const fetchData = async () => {
     if (!usernameProfile) return;
@@ -55,7 +49,9 @@ export const Perfil = ({ logged = false }) => {
           posts: data.publicaciones,
         }));
 
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
@@ -80,13 +76,13 @@ export const Perfil = ({ logged = false }) => {
       console.error("Error al obtener el usuario:", error);
       setCurrentUser(null);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
   useEffect(() => {
-
-
     if (logged) {
       fetchUserData();
     } else {
@@ -128,18 +124,23 @@ export const Perfil = ({ logged = false }) => {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <>
-
-      <div className="min-w-full min-h-full justify-center items-center">
+      <ProfileLoader onHide={loading} />
+      <div
+        className={
+          " min-w-full min-h-full justify-center items-center" +
+          (loading ? "  hidden" : "")
+        }
+      >
         <Suspense fallback={<div></div>}>
-        <ProfileInfo handleEditData={handleEditData} handleOnFollow={handleOnFollow} isOwner={isOwner} profileInfo={profileInfo} />
-        </ Suspense>
-
+          <ProfileInfo
+            handleEditData={handleEditData}
+            handleOnFollow={handleOnFollow}
+            isOwner={isOwner}
+            profileInfo={profileInfo}
+          />
+        </Suspense>
 
         <div className="flex justify-center relative">
           <div className="grid grid-cols-3 ">
@@ -158,9 +159,6 @@ export const Perfil = ({ logged = false }) => {
             ))}
           </div>
         </div>
-
-
-
       </div>
     </>
   );
