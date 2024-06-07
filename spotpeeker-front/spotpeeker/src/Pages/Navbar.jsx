@@ -3,11 +3,13 @@ import { useAuth } from '../Hooks/Auth/useAuth';
 
 
 export const Navbar = () => {
-  const {  isLoggedIn, navigate } = useAuth();
+  const {  isLoggedIn } = useAuth();
   
-    if(window.location.pathname == "/login" || window.location.pathname == "/register" || window.location.pathname == "/publicar"){
-        return null;
-    }
+  const excludedPaths = ["/login", "/register", "/publicar", "/editar-post"];
+
+  if (excludedPaths.includes(window.location.pathname)) {
+      return null;
+  }
 
 
 

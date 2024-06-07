@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 
-export const TagInput = ({ setPostTags }) => {
-    const [tags, setTags] = useState([]);
+export const TagInput = ({ setPostTags, defaultTags }) => {
+    const [tags, setTags] = useState(defaultTags);
     const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
-        setPostTags(tags);
+        console.log("TAGS inoput",defaultTags)
     }, [tags, setPostTags]);
 
     const handleInputChange = (e) => {
@@ -16,13 +16,18 @@ export const TagInput = ({ setPostTags }) => {
         e.preventDefault();
 
         if (inputValue.trim() !== '' && tags.length < 4) {
-            setTags([...tags, inputValue.trim()]);
+            let newTag ={"nombre":inputValue.trim()}
+            setTags([...tags, newTag]);
             setInputValue('');
+            setPostTags([...tags, newTag]);
+            
         }
     };
 
     const handleTagRemove = (index) => {
         setTags(tags.filter((_, i) => i !== index));
+        setPostTags(tags.filter((_, i) => i !== index));
+
     };
 
     return (
@@ -34,10 +39,11 @@ export const TagInput = ({ setPostTags }) => {
                         type="text"
                         value={inputValue}
                         onChange={handleInputChange}
-                        placeholder="Agregar usuario (max. 4)"
+                        placeholder="Agregar colaborador (max. 4)"
                         disabled={tags.length >= 4}
                     />
                     <button
+                        type="button"
                         className='bg-[#fafafa] py-1 px-2 rounded-md'
                         onClick={handleAddTag}
                         disabled={tags.length >= 4}
@@ -49,8 +55,8 @@ export const TagInput = ({ setPostTags }) => {
             <div className='flex flex-wrap gap-3 p-3 h-14 overflow-y-auto rounded-md bg-white border-1 mt-2 w-full'>
                 {tags.map((tag, index) => (
                     <div key={index} className="tag flex gap-2 bg-[#fafafa] py-1 px-2 rounded-md">
-                        #{tag}
-                        <button onClick={() => handleTagRemove(index)}>
+                        #{tag.nombre}
+                        <button  type="button" onClick={() => handleTagRemove(index)}>
                             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                                 <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>

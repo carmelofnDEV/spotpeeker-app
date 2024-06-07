@@ -23,7 +23,7 @@ export const ProfileLoader = ({onHide}) => {
         <style>
           {keyframes}
         </style>
-        <div className={"w-full h-[80vh] flex justify-center items-center"+(!onHide ? "  hidden" : "")}>
+        <div className={"cursor-wait w-full h-[100vh] flex justify-center items-center"+(!onHide ? "  hidden" : "")}>
           <div className="loader" style={loaderStyle}></div> 
         </div>
       </>

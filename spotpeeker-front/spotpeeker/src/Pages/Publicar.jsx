@@ -2,20 +2,52 @@ import { useState, useEffect } from "react";
 import { env } from "../env";
 import { TagInput } from "./Components/TagInput";
 import { GMap } from "./Components/GMap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { Carousel } from "react-responsive-carousel";
-
 export const Publicar = () => {
+  const location = useLocation();
+  const { singlePost } = location.state || {};
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      const photosArray = await Promise.all(
+        singlePost.imagenes.map(async (imagen) => {
+          const response = await fetch(
+            `${env.SERVER_URL}/media/${imagen.imagen}`
+          );
+          const blob = await response.blob();
+
+          let fileExtension = imagen.imagen.split(".")[-1];
+          console.log("fileEx", fileExtension);
+          if (fileExtension == undefined) {
+            fileExtension = "png";
+          }
+
+          return new File(
+            [blob],
+            imagen.imagen.substring(imagen.imagen.lastIndexOf("/") + 1),
+            { type: `image/${fileExtension}` }
+          );
+        })
+      );
+      setPhotos(photosArray);
+    };
+
+    fetchPhotos();
+  }, []);
+
   const SERVER_URL = env.SERVER_URL;
   const navigate = useNavigate();
 
-  const [coords, setCoords] = useState([]);
+  const [coords, setCoords] = useState(
+    singlePost && singlePost.ubicacion ? JSON.parse(singlePost.ubicacion) : []
+  );
+
   const [photos, setPhotos] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [description, setDescription] = useState([]);
+  const [tags, setTags] = useState(singlePost?.etiquetas || []);
+  const [description, setDescription] = useState(singlePost?.descripcion || "");
+  const [post_id, setPostId] = useState(singlePost?.id || null);
 
   const handleDescription = (e) => {
     setDescription(e.target.value);
@@ -35,6 +67,9 @@ export const Publicar = () => {
       formData.append("photos", file);
     });
 
+    if (post_id != null) {
+      formData.append("post_id", post_id);
+    }
     formData.append("tags", JSON.stringify(tags));
     formData.append("coords", JSON.stringify(coords));
     formData.append("description", description);
@@ -44,11 +79,21 @@ export const Publicar = () => {
     }
 
     try {
-      const response = await fetch(`${SERVER_URL}/publicar-post/`, {
+      let fetch_url = "";
+      if (post_id != null) {
+        fetch_url = `${SERVER_URL}/editar-post/`;
+      } else {
+        fetch_url = `${SERVER_URL}/publicar-post/`;
+      }
+
+      console.log("ID  ", JSON.stringify(tags));
+
+      const response = await fetch(fetch_url, {
         method: "POST",
         body: formData,
         credentials: "include",
       });
+
       const data = await response.json();
       if (data.status == "success") {
         navigate("/perfil");
@@ -77,11 +122,19 @@ export const Publicar = () => {
     console.log(photos);
   }, [photos]);
 
+  useEffect(() => {
+    if (singlePost) {
+      singlePost.etiquetas.forEach((element) => {
+        setTags([...tags, element.nombre]);
+      });
+    }
+  }, []);
+
   return (
     <>
-      <div className="flex justify-center items-center  w-[100%] p-5 ">
-        <div className="w-1/2 flex flex-col shadow-2xl bg-[#dddddd] p-5 rounded-xl gap-5">
-          <div className="w-full ">
+      <div className="flex justify-center items-center  w-[100%] mt-5 ">
+        <div className="w-1/2 flex flex-col shadow-2xl bg-[#dddddd] rounded-lg  gap-5">
+          <div className="w-full bg-gray-300 rounded-lg py-2 px-4">
             <Link to="/perfil">
               <svg
                 width="40px"
@@ -113,16 +166,25 @@ export const Publicar = () => {
             onSubmit={handleFormSubmit}
             className="flex flex-col  px-10 py-5 rounded-xl gap-5"
           >
-            <div className="w-full ">Fotos:</div>
             <div className="grid grid-cols-4 gap-3">
               {photos.map((file, index) => (
                 <div key={index} className="relative group">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Foto ${index}`}
-                    className="rounded-lg h-[12em] w-full object-cover bg-[#ffffff]"
-                  />
+                  {file.url ? (
+                    <img
+                      src={file.preview}
+                      alt={`Foto ${index}`}
+                      className="rounded-lg h-[12em] w-full object-cover bg-[#ffffff]"
+                    />
+                  ) : (
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Foto ${index}`}
+                      className="rounded-lg h-[12em] w-full object-cover bg-[#ffffff]"
+                    />
+                  )}
+
                   <button
+                    type="button"
                     onClick={() => removePhoto(index)}
                     className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                   >
@@ -183,7 +245,6 @@ export const Publicar = () => {
 
             <div className="grid grid-cols-2 gap-5 h-50">
               <div>
-                <div className="w-full">Descripción:</div>
                 <textarea
                   id="message"
                   rows="4"
@@ -191,29 +252,101 @@ export const Publicar = () => {
                   className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="Descripción del post"
                   onChange={handleDescription}
+                  defaultValue={singlePost?.descripcion || ""}
                 ></textarea>
               </div>
               <div>
-                <div className="w-full">Etiquetar colaboradores:</div>
-
                 <div className="flex justify-center w">
-                  <TagInput setPostTags={setTags} />
+                  <TagInput setPostTags={setTags} defaultTags={tags} />
                 </div>
               </div>
             </div>
             <div className="w-full h-[300px] ">
-              <div className="w-full">Ubicación:</div>
-
-              <GMap setCoords={setCoords} />
-            </div>
-
-            <div className="w-full flex justify-end items-end mt-10">
-              <input
-                className="px-8 py-2 bg-[#fafafafa] rounded-lg"
-                type="submit"
-                value="Publicar"
+              <GMap
+                setCoords={setCoords}
+                defaultMarker={
+                  singlePost && singlePost.ubicacion
+                    ? JSON.parse(singlePost.ubicacion)
+                    : []
+                }
               />
             </div>
+            {singlePost === undefined ? (
+              <div className="w-full flex justify-end items-end mt-10">
+                <div className="flex justify-center gap-2 items-center cursor-pointer	 px-4 py-1 border-[1px] border-black rounded-lg">
+                  <input
+                    className="cursor-pointer"
+                    type="submit"
+                    value="Publicar"
+                  />
+                  <svg
+                    width="20px"
+                    height="20px"
+                    viewBox="0 0 24 24"
+                    role="img"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-labelledby="okIconTitle"
+                    stroke="#000000"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    color="#000000"
+                  >
+                    <polyline points="4 13 9 18 20 7" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full flex justify-between items-end mt-10">
+                <div className="flex justify-center gap-2 items-center cursor-pointer	  border-[1px] ">
+                  <button
+                    type="button"
+                    className="bg-red-500 flex justify-center items-center gap-2 px-4 py-1 rounded-lg"
+                   
+                  >
+                    <span className="text-white">Eliminar </span>
+                    <svg
+                      fill="#fff"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18px"
+                      height="18px"
+                      viewBox="0 0 52 52"
+                      enableBackground="new 0 0 52 52"
+                      xmlSpace="preserve"
+                    >
+                      <g>
+                        <path d="M45.5,10H33V6c0-2.2-1.8-4-4-4h-6c-2.2,0-4,1.8-4,4v4H6.5C5.7,10,5,10.7,5,11.5v3C5,15.3,5.7,16,6.5,16h39 c0.8,0,1.5-0.7,1.5-1.5v-3C47,10.7,46.3,10,45.5,10z M23,7c0-0.6,0.4-1,1-1h4c0.6,0,1,0.4,1,1v3h-6V7z" />
+                        <path d="M41.5,20h-31C9.7,20,9,20.7,9,21.5V45c0,2.8,2.2,5,5,5h24c2.8,0,5-2.2,5-5V21.5C43,20.7,42.3,20,41.5,20z  M23,42c0,0.6-0.4,1-1,1h-2c-0.6,0-1-0.4-1-1V28c0-0.6,0.4-1,1-1h2c0.6,0,1,0.4,1,1V42z M33,42c0,0.6-0.4,1-1,1h-2 c-0.6,0-1-0.4-1-1V28c0-0.6,0.4-1,1-1h2c0.6,0,1,0.4,1,1V42z" />
+                      </g>
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex justify-center gap-2 items-center cursor-pointer	 px-4 py-1 border-[1px] border-black rounded-lg">
+                  <input
+                    className="cursor-pointer"
+                    type="submit"
+                    value="Editar"
+                  />
+                  <svg
+                    width="20px"
+                    height="20px"
+                    viewBox="0 0 24 24"
+                    role="img"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-labelledby="okIconTitle"
+                    stroke="#000000"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    color="#000000"
+                  >
+                    <polyline points="4 13 9 18 20 7" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>

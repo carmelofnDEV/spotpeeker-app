@@ -7,6 +7,7 @@ import { useFollow } from "../../Hooks/useFollow";
 import { CommentInput } from "../Components/CommentInput";
 import { CommentsSection } from "../Components/CommentsSection";
 import { useComments } from "../../Hooks/useComments";
+import { EditPost } from "../Components/EditPost";
 
 export const PostModal = ({
   onClose,
@@ -15,7 +16,6 @@ export const PostModal = ({
   isOwner,
   logged,
 }) => {
-
   const { follow, setFollow, onFollow } = useFollow({
     username: singlePost.autor,
     isFollow: isFollowed,
@@ -23,7 +23,7 @@ export const PostModal = ({
 
   const SERVER_URL = env.SERVER_URL;
   const [isLiking, setIsLiking] = useState();
-  const {comments, setComments} = useComments(singlePost.id);
+  const { comments, setComments } = useComments(singlePost.id);
 
   const handleOnFollow = async () => {
     const resp = await onFollow();
@@ -61,9 +61,7 @@ export const PostModal = ({
   };
 
   useEffect(() => {
-    
     setIsLiking(singlePost.liked_by_user);
-
   }, []);
 
   return (
@@ -105,12 +103,11 @@ export const PostModal = ({
           </div>
           <div className="flex items-center space-x-2">
             {isOwner ? (
-              <a
-                href="#"
-                className="text-lg px-4 py-1 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Editar
-              </a>
+
+              <EditPost singlePost={singlePost} />
+
+
+
             ) : (
               <button
                 onClick={handleOnFollow}
@@ -204,17 +201,15 @@ export const PostModal = ({
             {singlePost.etiquetas != [] ? (
               <div className="bg-gray-100 flex gap-3 pl-3 pb-2">
                 <p className="font-[800]">Feat: </p>
-                {singlePost.etiquetas.map(
-                  (element, index) => (
-                    <a
-                      href={`/usuario/${element.nombre}`}
-                      key={`${index}-tag`}
-                      className="italic hover:underline"
-                    >
-                      #{element.nombre}
-                    </a>
-                  )
-                )}
+                {singlePost.etiquetas.map((element, index) => (
+                  <a
+                    href={`/usuario/${element.nombre}`}
+                    key={`${index}-tag`}
+                    className="italic hover:underline"
+                  >
+                    #{element.nombre}
+                  </a>
+                ))}
               </div>
             ) : (
               <div></div>

@@ -71,7 +71,7 @@ export const EditProfileModal = ({
         <div className="relative p-8 rounded-lg flex flex-col justify-center items-center w-[70%] overflow-hidden">
           <div className=" w-full max-w-md bg-white rounded-lg overflow-y-auto">
             <div className="flex justify-between bg-gray-200 text-gray-700 px-6 py-4">
-              <h3 className="font-semibold text-lg">Editar perfil</h3>
+              <h3 className="font-semibold text-lg">Ajustes del perfil</h3>
               <button className="text-white p-1 rounded-lg" onClick={onClose}>
                 <svg
                   width="24px"

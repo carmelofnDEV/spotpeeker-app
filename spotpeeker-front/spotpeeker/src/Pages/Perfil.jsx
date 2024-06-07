@@ -91,6 +91,7 @@ export const Perfil = ({ logged = false }) => {
   }, [pathname, username, logged]);
 
   useEffect(() => {
+    setLoading(true)
     if (usernameProfile) {
       fetchData();
     }

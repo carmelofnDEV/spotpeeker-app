@@ -30,6 +30,9 @@ urlpatterns = [
 
     path('publicar-post/', views.uploadPost, name='uploadPost'),
 
+    path('editar-post/', views.editUploadPost, name='editUploadPost'),
+
+
     #social
     path('like-post/', views.likePost, name='likePost'),
     path('comment-post/', views.commentPost, name='commentPost'),

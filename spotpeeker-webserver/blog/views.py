@@ -481,7 +481,7 @@ def generatePhotoName(name):
     new_name = f"{uuid.uuid4()}.{extension}"
     return new_name
    
-
+#subir post
 @csrf_exempt
 def uploadPost(request):
     data = {"status": "error"}
@@ -557,6 +557,99 @@ def uploadPost(request):
 
 
     return JsonResponse(data)  
+
+@csrf_exempt
+def editUploadPost(request):
+
+    data = {"status": "error"}
+    errors = {}
+    max_size = 10 * 1024 * 1024 
+    allowed_types = ['image/jpeg', 'image/png','image/gif']
+
+    if request.method == 'POST' and request.FILES:
+
+        perfil = getPerfilRequest(request)
+
+        if perfil:
+
+            
+            description = request.POST.get('description', '')
+            post_id = request.POST.get('post_id', '')
+
+            tags = request.POST.getlist('tags', [])
+            coords = request.POST.get('coords', '')
+            photos_list = []
+            photos = request.FILES.getlist('photos')
+
+            tags = json.loads(tags[0])
+
+
+
+
+
+            for photo in photos:
+                if photo.size > max_size:
+                    errors["max_size"] = "El archivo " + photo.name+ " pesa demasiado. (10MB max)"
+                    
+
+
+                if photo.content_type not in allowed_types:
+                    errors["bad_type"] = "Tipo de archivo no válido ("+photo.name+")"
+                
+                photos_list.append(photo) 
+
+            if len(errors) == 0:
+                publicacion = Publicacion.objects.get(pk = post_id)
+
+                if publicacion.autor == perfil:
+                
+
+                    if publicacion.descripcion != description:
+
+                        publicacion.descripcion = description
+
+                    if publicacion.ubicacion != coords:
+                        publicacion.ubicacion = coords
+
+
+                    publicacion.save()
+                    publicacion.imagenes.clear()
+
+                    for photo in photos_list:
+                        try:
+                            imagen = Imagen()
+                            filename = generatePhotoName(photo.name)
+                            imagen.imagen.save(filename,photo)
+                            publicacion.imagenes.add(imagen)
+                        except Exception as e:
+                            errors["server_error_photos"] = f"{e}"
+
+                    publicacion.etiquetas.clear()
+
+                    for tag in tags:
+                        try:
+                            nombre = tag["nombre"]
+                            etiqueta = Etiqueta(nombre=nombre)
+                            etiqueta.save()
+                            publicacion.etiquetas.add(etiqueta)
+                        except Exception as e:
+                            errors["server_error_tags"] = f"{e}"
+
+                    data = {"status": "success"}
+
+    if not request.FILES:
+        errors["no_photo"] = "Debes subir al menos una foto."
+        
+    
+    if len(errors) != 0:
+        data = {
+            "status": "error",
+            "errors": errors,
+        }
+
+
+    return JsonResponse(data)  
+
 
 #social
 @csrf_exempt
