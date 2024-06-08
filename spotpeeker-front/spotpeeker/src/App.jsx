@@ -8,12 +8,14 @@ import { Navbar } from "./Pages/Navbar";
 import { Publicar } from "./Pages/Publicar";
 import { Descubrir } from "./Pages/Descubrir";
 import { ChangePassword } from "./Pages/Auth/ChangePassword";
+import { GlobalProvider } from "./context/GlobalContext";
 
 export const App = () => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <>
+    <GlobalProvider> 
+      <>
         <Navbar />
         <Routes>
           {isLoggedIn ? (
@@ -21,10 +23,7 @@ export const App = () => {
               <Route path="/perfil" element={<Perfil logged={isLoggedIn} />} />
               <Route path="/publicar" element={<Publicar />} />
               <Route path="/editar-post" element={<Publicar />} />
-
-              
               <Route path="/cambiar-contraseña" element={<ChangePassword />} />
-
             </>
           ) : (
             <>
@@ -43,6 +42,7 @@ export const App = () => {
             element={<Descubrir logged={isLoggedIn} />}
           />
         </Routes>
-    </>
+      </>
+    </GlobalProvider> 
   );
 };

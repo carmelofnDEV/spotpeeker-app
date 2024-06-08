@@ -1,13 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { env } from "../env";
 import { TagInput } from "./Components/TagInput";
 import { GMap } from "./Components/GMap";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { DeletePostModal } from "./Modals/DeletePostModal";
+import { GlobalContext } from "../context/GlobalContext";
+import { ToastNotifications } from "./Components/ToastNotifications";
 
 export const Publicar = () => {
+  const { toasts, setToast, toastViewed } = useContext(GlobalContext);
+
   const location = useLocation();
   const { singlePost } = location.state || {};
+
+  const [deleteMolaOpen, setDeleteMolaOpen] = useState(false);
+
+  const openDeleteModal = () => {
+    setDeleteMolaOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteMolaOpen(false);
+  };
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -96,7 +111,24 @@ export const Publicar = () => {
 
       const data = await response.json();
       if (data.status == "success") {
+        if (post_id != null) {
+          setToast([
+            { type: "success", message: "Post editado correctamente." },
+          ]);
+        } else {
+          setToast([
+            { type: "success", message: "Post publicado correctamente." },
+          ]);
+        }
         navigate("/perfil");
+      } else {
+        if (data.errors) {
+          const errores = Object.values(data.errors);
+          errores.forEach((error) => {
+            setToast([...toasts, { type: "error", message: error }]);
+          });
+          toastViewed();
+        }
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
@@ -117,10 +149,6 @@ export const Publicar = () => {
   const removePhoto = (index) => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
-
-  useEffect(() => {
-    console.log(photos);
-  }, [photos]);
 
   useEffect(() => {
     if (singlePost) {
@@ -274,36 +302,34 @@ export const Publicar = () => {
             {singlePost === undefined ? (
               <div className="w-full flex justify-end items-end mt-10">
                 <div className="flex justify-center gap-2 items-center cursor-pointer	 px-4 py-1 border-[1px] border-black rounded-lg">
-                  <input
-                    className="cursor-pointer"
-                    type="submit"
-                    value="Publicar"
-                  />
-                  <svg
-                    width="20px"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    role="img"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-labelledby="okIconTitle"
-                    stroke="#000000"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    color="#000000"
-                  >
-                    <polyline points="4 13 9 18 20 7" />
-                  </svg>
+                  <button type="submit" className="flex items-center gap-2">
+                    <span>Publicar</span>
+                    <svg
+                      width="20px"
+                      height="20px"
+                      viewBox="0 0 24 24"
+                      role="img"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-labelledby="okIconTitle"
+                      stroke="#000000"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                      color="#000000"
+                    >
+                      <polyline points="4 13 9 18 20 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="w-full flex justify-between items-end mt-10">
                 <div className="flex justify-center gap-2 items-center cursor-pointer	  border-[1px] ">
                   <button
+                    onClick={openDeleteModal}
                     type="button"
                     className="bg-red-500 flex justify-center items-center gap-2 px-4 py-1 rounded-lg"
-                   
                   >
                     <span className="text-white">Eliminar </span>
                     <svg
@@ -323,33 +349,38 @@ export const Publicar = () => {
                   </button>
                 </div>
                 <div className="flex justify-center gap-2 items-center cursor-pointer	 px-4 py-1 border-[1px] border-black rounded-lg">
-                  <input
-                    className="cursor-pointer"
-                    type="submit"
-                    value="Editar"
-                  />
-                  <svg
-                    width="20px"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    role="img"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-labelledby="okIconTitle"
-                    stroke="#000000"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    color="#000000"
-                  >
-                    <polyline points="4 13 9 18 20 7" />
-                  </svg>
+                  <button type="submit" className="flex items-center gap-2">
+                    <span>Editar</span>
+                    <svg
+                      width="20px"
+                      height="20px"
+                      viewBox="0 0 24 24"
+                      role="img"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-labelledby="okIconTitle"
+                      stroke="#000000"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                      color="#000000"
+                    >
+                      <polyline points="4 13 9 18 20 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             )}
           </form>
         </div>
       </div>
+
+      <DeletePostModal
+        isOpen={deleteMolaOpen}
+        onClose={closeDeleteModal}
+        singlePost={singlePost}
+      />
+      <ToastNotifications />
     </>
   );
 };

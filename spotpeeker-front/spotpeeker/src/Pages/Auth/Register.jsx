@@ -1,8 +1,13 @@
+import { useContext, useRef, useState } from "react";
 import { useAuth } from "../../Hooks/Auth/useAuth";
 import { env } from "../../env";
+import ReCAPTCHA from 'react-google-recaptcha';
+import { GlobalContext } from "../../context/GlobalContext";
 
 export const Register = () => {
   const SERVER_URL = env.SERVER_URL;
+
+  const {toasts, setToast } = useContext(GlobalContext);
 
   const {
     checkRegisterCredentials,
@@ -12,7 +17,26 @@ export const Register = () => {
     navigate,
   } = useAuth();
 
-  const registerCredentials = async (event) => {
+  const handleCaptchaChange = (token) => {
+    setIsCaptchaVerified(true);
+    registerCredentials();
+  };
+
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    recaptchaRef.current.execute();
+  };
+
+
+
+  const recaptchaRef = useRef();
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+
+
+  const registerCredentials = async () => {
+
+
+
     let data = await checkRegisterCredentials(event);
 
 
@@ -21,6 +45,7 @@ export const Register = () => {
         setErrors(data.errors);
         console.log("errorsss", errors);
       }else{
+        setToast([...toasts,{"type":"info","message":"Hemos enviado un correo de verificación."}])
         navigate("/login/")
         setErrors({});
       }
@@ -111,6 +136,12 @@ export const Register = () => {
         <div className="flex justify-center">
           <button className="bg-[#627254] p-2 rounded">Registrarse</button>
         </div>
+        <ReCAPTCHA
+          ref={recaptchaRef}
+          sitekey="6LfZQvQpAAAAAHTb_2JimitBDn8rsoc1FBEwT129"
+          onChange={handleCaptchaChange}
+          size="invisible"
+        />
       </form>
     </div>
   );

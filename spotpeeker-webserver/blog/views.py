@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import *
 from django.shortcuts import get_object_or_404
-
+import os
 
 # transformar imagen
 from wand.image import Image as WandImage
@@ -118,7 +118,7 @@ def register(request):
         name = data.get("name")
 
         if len(name) < 3:
-            errors["short_name"] = "El nobre debe contener al menos 3 carácteres."
+            errors["short_name"] = "El nombre debe contener al menos 3 carácteres."
 
 
         last_name = data.get("last_name")
@@ -613,7 +613,11 @@ def editUploadPost(request):
 
 
                     publicacion.save()
-                    publicacion.imagenes.clear()
+
+                    deletePostImages(publicacion)
+
+                    publicacion.imagenes.all().delete()
+
 
                     for photo in photos_list:
                         try:
@@ -1094,3 +1098,61 @@ def change_password(request):
         send_mail(asunto, mensaje, remitente, destinatario)
         data["status"] = "success"
     return JsonResponse(data)
+
+#elimina un post
+@csrf_exempt
+def eliminar_post(request):
+    data = {"status": "error"}
+
+    if request.method == "POST":
+        perfil = getPerfilRequest(request) 
+
+        if perfil:
+            post_data = json.loads(request.body.decode('utf-8'))
+
+            post_id = post_data.get("post_id")
+
+
+            try:
+                publicacion = Publicacion.objects.get(pk=post_id)
+
+                if publicacion.autor == perfil:    
+
+                    deletePostImages(publicacion)
+
+                    publicacion.etiquetas.clear()
+
+                    publicacion.comentarios.all().delete()
+                    publicacion.me_gustas.all().delete()
+
+
+                    publicacion.imagenes.all().delete()
+                    publicacion.delete()
+
+                    data["status"] = "success" 
+
+
+                else:
+                    data["status"] = "error" 
+
+            except Publicacion.DoesNotExist:
+                data["status"] = "error" 
+
+
+    return JsonResponse(data)
+
+def deletePostImages(publicacion):
+
+    imagenes_a_eliminar = publicacion.imagenes.all()
+
+
+    for imagen in imagenes_a_eliminar:
+        ruta_archivo = imagen.imagen.path
+
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+            print(f"Archivo eliminado: {ruta_archivo}")
+        else:
+            print(f"El archivo no existe: {ruta_archivo}")
+
+        imagen.delete()

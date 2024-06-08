@@ -49,6 +49,9 @@ urlpatterns = [
     path('get-comments/<int:id>', views.get_comment, name='get-comment'),
     path('edit-profile/', views.edit_profile, name='edit-profile'),
 
+    path('eliminar-post/', views.eliminar_post, name='eliminar-post'),
+
+
 
 
 

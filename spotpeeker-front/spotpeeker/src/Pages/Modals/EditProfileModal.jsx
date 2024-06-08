@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { env } from "../../env";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Hooks/Auth/useAuth";
 
 export const EditProfileModal = ({
@@ -10,7 +9,6 @@ export const EditProfileModal = ({
   onClose,
 }) => {
   const { onLogout, navigate } = useAuth();
-
   const handleLogOut = async () => {
     const resp = await onLogout();
 
@@ -35,28 +33,36 @@ export const EditProfileModal = ({
   const handleEdit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append("username", username.current.value);
-    formData.append("biografia", bio.current.value);
-    formData.append("es_privado", !privateOption);
+    if (
+      profileInfo.userData.username != username.current.value ||
+      profileInfo.profileData.biografia != bio.current.value ||
+      profileInfo.profileData.es_privado != !privateOption
+    ) {
+      formData.append("username", username.current.value);
+      formData.append("biografia", bio.current.value);
+      formData.append("es_privado", !privateOption);
 
-    try {
-      const response = await fetch(`${env.SERVER_URL}/edit-profile/`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-      const data = await response.json();
-      console.log(data);
+      try {
+        const response = await fetch(`${env.SERVER_URL}/edit-profile/`, {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+        const data = await response.json();
+        console.log(data);
 
-      if (data.status == "success") {
-        setErrors({});
+        if (data.status == "success") {
+          setErrors({});
 
-        onSuccess();
-      } else {
-        setErrors(data.errors);
+          onSuccess();
+        } else {
+          setErrors(data.errors);
+        }
+      } catch (error) {
+        console.error("Error al subir la imagen:", error);
       }
-    } catch (error) {
-      console.error("Error al subir la imagen:", error);
+    } else {
+      onSuccess();
     }
   };
 
@@ -130,9 +136,8 @@ export const EditProfileModal = ({
                           strokeLinejoin="round"
                         ></g>
                         <g id="SVGRepo_iconCarrier">
-                          {" "}
-                          <title>warning</title>{" "}
-                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>{" "}
+                          <title>warning</title>
+                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>
                         </g>
                       </svg>
                     </span>
@@ -156,9 +161,8 @@ export const EditProfileModal = ({
                           strokeLinejoin="round"
                         ></g>
                         <g id="SVGRepo_iconCarrier">
-                          {" "}
-                          <title>warning</title>{" "}
-                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>{" "}
+                          <title>warning</title>
+                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>
                         </g>
                       </svg>
                     </span>
@@ -201,9 +205,8 @@ export const EditProfileModal = ({
                           strokeLinejoin="round"
                         ></g>
                         <g id="SVGRepo_iconCarrier">
-                          {" "}
-                          <title>warning</title>{" "}
-                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>{" "}
+                          <title>warning</title>
+                          <path d="M30.555 25.219l-12.519-21.436c-1.044-1.044-2.738-1.044-3.782 0l-12.52 21.436c-1.044 1.043-1.044 2.736 0 3.781h28.82c1.046-1.045 1.046-2.738 0.001-3.781zM14.992 11.478c0-0.829 0.672-1.5 1.5-1.5s1.5 0.671 1.5 1.5v7c0 0.828-0.672 1.5-1.5 1.5s-1.5-0.672-1.5-1.5v-7zM16.501 24.986c-0.828 0-1.5-0.67-1.5-1.5 0-0.828 0.672-1.5 1.5-1.5s1.5 0.672 1.5 1.5c0 0.83-0.672 1.5-1.5 1.5z"></path>
                         </g>
                       </svg>
                     </span>

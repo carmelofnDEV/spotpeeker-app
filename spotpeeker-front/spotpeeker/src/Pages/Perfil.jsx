@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useContext } from "react";
 import { useUserProfile } from "../Hooks/useUserProfile";
 import { env } from "../env";
 
@@ -8,8 +8,12 @@ import { useUser } from "../Hooks/useUser";
 import { ProfileInfo } from "./ProfileInfo";
 
 import { ProfileLoader } from "../Loaders/ProfileLoader";
+import { ToastNotifications } from "./Components/ToastNotifications";
+
 
 export const Perfil = ({ logged = false }) => {
+
+
   const { pathname } = useLocation();
   const { username } = useParams();
   const SERVER_URL = env.SERVER_URL;
@@ -82,6 +86,9 @@ export const Perfil = ({ logged = false }) => {
     }
   };
 
+
+
+
   useEffect(() => {
     if (logged) {
       fetchUserData();
@@ -128,6 +135,7 @@ export const Perfil = ({ logged = false }) => {
   return (
     <>
       <ProfileLoader onHide={loading} />
+
       <div
         className={
           " min-w-full min-h-full justify-center items-center" +
@@ -160,6 +168,9 @@ export const Perfil = ({ logged = false }) => {
             ))}
           </div>
         </div>
+
+      <ToastNotifications />
+
       </div>
     </>
   );
