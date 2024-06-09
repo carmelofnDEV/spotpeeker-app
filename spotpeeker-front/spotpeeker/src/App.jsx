@@ -9,12 +9,14 @@ import { Publicar } from "./Pages/Publicar";
 import { Descubrir } from "./Pages/Descubrir";
 import { ChangePassword } from "./Pages/Auth/ChangePassword";
 import { GlobalProvider } from "./context/GlobalContext";
+import { VerifyMail } from "./Pages/VerifyMail";
+import { ChangePasswordForm } from "./Pages/ChangePasswordForm";
 
 export const App = () => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <GlobalProvider> 
+    <GlobalProvider>
       <>
         <Navbar />
         <Routes>
@@ -41,8 +43,12 @@ export const App = () => {
             path="/descubrir"
             element={<Descubrir logged={isLoggedIn} />}
           />
+          <Route path="/verify-email/:token" element={<VerifyMail />} />
+          <Route path="/change-password/:token" element={<ChangePasswordForm />} />
+
+          
         </Routes>
       </>
-    </GlobalProvider> 
+    </GlobalProvider>
   );
 };

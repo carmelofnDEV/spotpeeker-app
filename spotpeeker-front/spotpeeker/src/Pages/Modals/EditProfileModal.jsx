@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { env } from "../../env";
 import { useAuth } from "../../Hooks/Auth/useAuth";
 
@@ -17,9 +17,7 @@ export const EditProfileModal = ({
     }
   };
 
-  const [privateOption, setPrivateOption] = useState(
-    profileInfo.profileData.es_privado
-  );
+  const [privateOption, setPrivateOption] = useState(profileInfo.es_privado);
 
   const username = useRef(null);
   const bio = useRef(null);
@@ -33,14 +31,15 @@ export const EditProfileModal = ({
   const handleEdit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
+    console.log("OPTION",privateOption,"CXURRENT",profileInfo.es_privado)
     if (
       profileInfo.userData.username != username.current.value ||
       profileInfo.profileData.biografia != bio.current.value ||
-      profileInfo.profileData.es_privado != !privateOption
+      profileInfo.profileData.es_privado != privateOption
     ) {
       formData.append("username", username.current.value);
       formData.append("biografia", bio.current.value);
-      formData.append("es_privado", !privateOption);
+      formData.append("es_privado", privateOption);
 
       try {
         const response = await fetch(`${env.SERVER_URL}/edit-profile/`, {
@@ -66,9 +65,23 @@ export const EditProfileModal = ({
     }
   };
 
+  useEffect(() => {
+    
+  
+    setPrivateOption(profileInfo.es_privado)
+    console.log("INFO-",profileInfo)
+  }, [profileInfo])
+
+  useEffect(() => {
+    
+  
+    console.log("priv-",privateOption)
+  }, [privateOption])
+  
+
   const changeOption = (e) => {
     console.log(e.target.checked);
-    setPrivateOption(!e.target.checked);
+    setPrivateOption(!privateOption);
   };
 
   return (
@@ -215,14 +228,14 @@ export const EditProfileModal = ({
                 <div className="mb-20">
                   <label className="flex gap-3 items-center cursor-pointer">
                     <span className="font-medium text-gray-900 dark:text-gray-300">
-                      Cuenta privada:
+                      Cuenta oculta:
                     </span>
                     <input
                       type="checkbox"
                       onChange={(e) => {
                         changeOption(e);
                       }}
-                      checked={!privateOption ? "checked" : ""}
+                      checked={privateOption ? "checked" : ""}
                       className="sr-only peer"
                     />
                     <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none  peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>

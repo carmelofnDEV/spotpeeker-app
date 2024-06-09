@@ -2,12 +2,16 @@ import { env } from "../env";
 import { PostModal } from "./Modals/PostModal";
 import { useEffect, useState } from "react";
 import { Modal } from "./Components/Modal";
+import { NotFeedHome } from "./NotFeedHome";
+import { HomeLoader } from "./HomeLoader";
 
 export const Home = ({ logged }) => {
   const SERVER_URL = env.SERVER_URL;
 
   const [userFeed, setUserFeed] = useState([]);
   const [loaded, setLoaded] = useState(false);
+
+  const [notFeed, setNotFeed] = useState(false);
 
   const getFeed = async () => {
     try {
@@ -23,6 +27,9 @@ export const Home = ({ logged }) => {
         console.log(data);
         setUserFeed(data.publicaciones);
         setLoaded(true);
+        setNotFeed(false);
+      } else {
+        setNotFeed(true);
       }
     } catch (error) {
       console.error("Error al cargar feed:", error);
@@ -41,19 +48,31 @@ export const Home = ({ logged }) => {
 
   useEffect(() => {
     getFeed();
-
-
   }, []);
 
   useEffect(() => {
     if (logged) {
-      
     }
   }, [logged]);
 
-  if (loaded) {
-    return (
-      <div className="flex justify-center items-center mt-[2vh]">
+  if (notFeed) {
+    return <NotFeedHome />;
+  }
+
+  return (
+    <>
+      <HomeLoader />
+
+      <div className="relative w-full py-2 flex justify-center bg-gray-300 bg-opacity-80 shadow-lg ">
+        {" "}
+        <img
+          className="max-h-[10vh]"
+          src={`${env.SERVER_URL}/static/logo-home.png`}
+          alt="logo-home"
+        />
+      </div>
+
+      <div className="relative flex justify-center items-center mt-[2vh]">
         <div className="grid grid-cols-1 gap-4">
           {userFeed.map((post, index) => (
             <div
@@ -62,7 +81,13 @@ export const Home = ({ logged }) => {
             >
               <div className="w-full bg-white p-3">
                 <div className="flex">
-                  <p>#{post.autor}</p>
+                  <a
+                    href={`/usuario/${post.autor}`}
+                    key={`${index}-tag`}
+                    className="font-[700] hover:underline"
+                  >
+                    #{post.autor}
+                  </a>
                 </div>
               </div>
               <div className="flex justify-center items-center w-full h-[60vh]">
@@ -98,8 +123,6 @@ export const Home = ({ logged }) => {
           ))}
         </div>
       </div>
-    );
-  } else {
-    return <div>Loading...</div>;
-  }
+    </>
+  );
 };

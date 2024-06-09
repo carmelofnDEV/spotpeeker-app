@@ -47,7 +47,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 
-
+SECRET_CRYPTED_KEY = config("CRYPTED_KEY")
 
 # Carpeta de multimedia
 STATIC_URL = '/static/'

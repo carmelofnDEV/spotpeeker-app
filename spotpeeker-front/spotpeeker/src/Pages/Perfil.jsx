@@ -9,11 +9,9 @@ import { ProfileInfo } from "./ProfileInfo";
 
 import { ProfileLoader } from "../Loaders/ProfileLoader";
 import { ToastNotifications } from "./Components/ToastNotifications";
-
+import { ProfileNotFound } from "./ProfileNotFound";
 
 export const Perfil = ({ logged = false }) => {
-
-
   const { pathname } = useLocation();
   const { username } = useParams();
   const SERVER_URL = env.SERVER_URL;
@@ -21,7 +19,7 @@ export const Perfil = ({ logged = false }) => {
   const [usernameProfile, setUsernameProfile] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
-
+  const [notFound, setNotFound] = useState(false);
   const [profileInfo, setProfileInfo] = useState({
     profileData: {},
     userData: {},
@@ -50,12 +48,19 @@ export const Perfil = ({ logged = false }) => {
           profileData: data.perfil,
           userData: data.usuario,
           isFollowed: data.perfil.followed,
+          es_privado: data.perfil.es_privado,
+
           posts: data.publicaciones,
         }));
+        setNotFound(false);
 
         setTimeout(() => {
           setLoading(false);
+          
+
         }, 1000);
+      } else {
+        setNotFound(true);
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
@@ -86,9 +91,6 @@ export const Perfil = ({ logged = false }) => {
     }
   };
 
-
-
-
   useEffect(() => {
     if (logged) {
       fetchUserData();
@@ -98,7 +100,7 @@ export const Perfil = ({ logged = false }) => {
   }, [pathname, username, logged]);
 
   useEffect(() => {
-    setLoading(true)
+    setLoading(true);
     if (usernameProfile) {
       fetchData();
     }
@@ -132,6 +134,10 @@ export const Perfil = ({ logged = false }) => {
     }
   };
 
+  if (notFound) {
+    return <ProfileNotFound />;
+  }
+
   return (
     <>
       <ProfileLoader onHide={loading} />
@@ -148,6 +154,7 @@ export const Perfil = ({ logged = false }) => {
             handleOnFollow={handleOnFollow}
             isOwner={isOwner}
             profileInfo={profileInfo}
+
           />
         </Suspense>
 
@@ -169,8 +176,7 @@ export const Perfil = ({ logged = false }) => {
           </div>
         </div>
 
-      <ToastNotifications />
-
+        <ToastNotifications />
       </div>
     </>
   );

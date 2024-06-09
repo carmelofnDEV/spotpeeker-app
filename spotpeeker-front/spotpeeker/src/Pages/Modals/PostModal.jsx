@@ -22,7 +22,7 @@ export const PostModal = ({
   });
 
   const SERVER_URL = env.SERVER_URL;
-  const [isLiking, setIsLiking] = useState();
+  const [isLiking, setIsLiking] = useState(singlePost.liked_by_user);
   const { comments, setComments } = useComments(singlePost.id);
 
   const handleOnFollow = async () => {
@@ -52,6 +52,7 @@ export const PostModal = ({
         } else if (result.action == "unliked") {
           setIsLiking(false);
           singlePost.liked_by_user = false;
+          
           singlePost.likes = singlePost.likes - 1;
         }
       }
@@ -62,7 +63,12 @@ export const PostModal = ({
 
   useEffect(() => {
     setIsLiking(singlePost.liked_by_user);
+    console.log("LIKED?", singlePost.liked_by_user);
   }, []);
+
+  useEffect(() => {
+    console.log("CHANGE LIKED?", singlePost.liked_by_user);
+  }, [isLiking]);
 
   return (
     <>
@@ -103,11 +109,7 @@ export const PostModal = ({
           </div>
           <div className="flex items-center space-x-2">
             {isOwner ? (
-
               <EditPost singlePost={singlePost} />
-
-
-
             ) : (
               <button
                 onClick={handleOnFollow}
@@ -194,8 +196,7 @@ export const PostModal = ({
                 >
                   #{singlePost.autor}:
                 </a>
-                {singlePost.descripcion} esto es una biografia de prueba, para
-                ver como quedaría.
+                {singlePost.descripcion} 
               </div>
             </div>
             {singlePost.etiquetas != [] ? (
@@ -220,7 +221,7 @@ export const PostModal = ({
         <div className="flex w-full  ">
           <div className="bg-gray-300 p-3 rounded-b-lg flex gap-3">
             <button onClick={handleLike} className="text-lg">
-              {isLiking ? (
+              {isLiking == true ? (
                 <svg
                   width="30px"
                   height="30px"

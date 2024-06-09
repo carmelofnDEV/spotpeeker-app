@@ -17,6 +17,8 @@ import uuid
 
 #enviar correo
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 #coger variables del .env
 from django.conf import settings
@@ -31,12 +33,19 @@ from django.views.decorators.csrf import csrf_exempt
 #generar tokens para el usuario
 import hashlib
 
+#encriptar tokens
+from cryptography.fernet import Fernet
+import base64
+
+
 #trabajar con fechas
 from datetime import datetime,timedelta
 from django.utils import timezone
 
 #Trabajar con aleatoriedad
 from random import shuffle
+
+CLAVE_SECRETA = settings.SECRET_CRYPTED_KEY.encode()
 
 
 #testear que el servidor devuelve json correctamente
@@ -81,7 +90,10 @@ def login(request):
                 errors["bad_password"] = "Contraseña incorrecta."
 
         if len(errors) == 0: 
+            
+
             valor_cookie = str(uuid.uuid4())
+
             sesion_cookie = SessionCookie(
                 user = usuario,
                 value = valor_cookie,
@@ -152,7 +164,9 @@ def register(request):
 
 
         if len(errors) == 0:
+
             verification_token = generate_token((email+name))
+
             new_user  = Usuario(
                 username=username,
                 name=name,
@@ -204,42 +218,70 @@ def checkIfUsernameExist(username):
  
     return usernameExist
 
+@csrf_exempt
+def verify_mail(request):
 
+    data = {"status":"error"}
 
+    if request.method == "POST":
 
-#verificar el email del usuario
-def verify_mail(request,token):
+        data_post = json.loads(request.body.decode('utf-8'))
+        token = data_post.get("token")
 
-    usuario = get_object_or_404(Usuario, verification_token=token)    
-    usuario.email_verified = True
-    usuario.save()
+        f = Fernet(CLAVE_SECRETA)
+        token_bytes = token.encode()
+        mensaje = f.decrypt(token_bytes)
+        datos = mensaje.decode()
+        token_codificado, fecha_str = datos.split("/")
+        
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
+    
+        caducidad = fecha + timedelta(days=2)
+    
+        if caducidad > datetime.now():
+            usuario = get_object_or_404(Usuario, verification_token=token_codificado)  
+    
+            if usuario:
+                
+                perfil = PerfilUsuario.objects.filter(usuario = usuario)
+                if len(perfil) == 0:
+                    usuario.email_verified = True
+                    usuario.save()
+        
+                    nuevo_perfil = PerfilUsuario(usuario=usuario)
+                    nuevo_perfil.save()
+    
+                data = {"status": "success"}
+            else:
+                data = {"status": "error", "mensaje": "El usuario asociado al token no existe"}
+        else:
+            data = {"status": "error", "mensaje": "El token ha caducado"}
 
-    nuevo_perfil = PerfilUsuario(
-        usuario=usuario
-    )
-    nuevo_perfil.save()
-
-    data = {
-        "status":"success"
-    }
     
     return JsonResponse(data)
 
-#genera un token de usuario
-def generate_token(str):
-    bytes = str.encode('utf-8')
-    hash_obj = hashlib.sha256()
-    hash_obj.update(bytes)
-    token = hash_obj.hexdigest()
-    return token
+
+
+
 
 #envia un email para verificar el correo
+
 @csrf_exempt
-def send_verify_mail(name,email,token):
+def send_verify_mail(name, email, token):
 
-    enlace_verificacion = f"{settings.APP_WEB_HOST}/verify-email/{token}/"
 
-    asunto = "!Verifica tu correo¡"
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d")
+
+    mensaje_original = f"{token}/{fecha_hoy}"
+
+    f = Fernet(CLAVE_SECRETA)
+
+    mensaje_encriptado = f.encrypt(mensaje_original.encode())
+
+
+    enlace_verificacion = f"{settings.APP_WEB_HOST}verify-email/{mensaje_encriptado.decode()}/"
+
+    asunto = "¡Verifica tu correo!"
     mensaje = f"""Hola {name},
 
     Solo un paso más para comenzar. Necesitamos verificar tu dirección de correo electrónico.
@@ -250,13 +292,20 @@ def send_verify_mail(name,email,token):
     ¡Gracias por unirte!
 
     Atentamente,
-    El Equipo de Spot Peeker""" 
+    El Equipo de Spot Peeker"""
 
     remitente = settings.EMAIL_HOST_USER
     destinatario = [email]
 
     send_mail(asunto, mensaje, remitente, destinatario)
 
+#genera un token de usuario
+def generate_token(str):
+    bytes = str.encode('utf-8')
+    hash_obj = hashlib.sha256()
+    hash_obj.update(bytes)
+    token = hash_obj.hexdigest()
+    return token
 
 #verifica si la cookie de sesion es válida
 @csrf_exempt
@@ -332,6 +381,7 @@ def getUserProfileData(request,username):
                 current_profile = getPerfilRequest(request)
 
                 perfil = PerfilUsuario.objects.get(usuario=user)
+                
 
                 followers = Seguidor.objects.filter(siguiendo=perfil)
 
@@ -823,7 +873,7 @@ def getUserFeed(request):
                 shuffle(data["publicaciones"])
                 data["status"] = "success"
         else:
-            perfiles_aleatorios = PerfilUsuario.objects.filter(perfil_privado=False).order_by('?')[:10]
+            perfiles_aleatorios = PerfilUsuario.objects.filter(perfil_privado=False)[:10]
 
             for perfil_random in perfiles_aleatorios:
                 data["publicaciones"] += obtener_publicaciones(perfil_random)
@@ -1063,42 +1113,97 @@ def edit_profile(request):
 
 #envia un email para cambiar la contraseña
 @csrf_exempt
-def change_password(request):
+def mail_change_password(request):
 
     data={"status":"error"}
 
     user = getUserRequest(request)
 
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d")
+
+    mensaje_original = f"{user.verification_token}/{fecha_hoy}"
+
+    f = Fernet(CLAVE_SECRETA)
+
+    mensaje_encriptado = f.encrypt(mensaje_original.encode())
+
 
     if user:
 
-        enlace_verificacion = f"{settings.APP_WEB_HOST}/change-password/{user.verification_token}/"
+        enlace_verificacion = f"{settings.APP_WEB_HOST}change-password/{mensaje_encriptado.decode()}/"
 
         asunto = "!Cambio de contraseña!"
 
-        mensaje = f"""Hola {user.username},
-
-        Recibes este correo electrónico porque hemos recibido una solicitud para restablecer la contraseña de tu cuenta en Spot Peeker. Si no realizaste esta solicitud, puedes ignorar este mensaje con tranquilidad. No se realizarán cambios en tu cuenta.
-
-        Si solicitaste el restablecimiento de contraseña, puedes proceder siguiendo el enlace a continuación:
-
-        <a href="{enlace_verificacion}">Restablecer Contraseña</a>
-
-        Este enlace expirará en 2 días, así que asegúrate de utilizarlo pronto.
-
-        ¡Gracias!
-
-        Atentamente,
-        El Equipo de Spot Peeker"""
-
+        mensaje_html = render_to_string('email_templates/cambio_contraseña.html', {'enlace_verificacion': enlace_verificacion,'username': user.username})
+        
+        mensaje_texto = strip_tags(mensaje_html)
 
         remitente = settings.EMAIL_HOST_USER
         destinatario = [user.email]
 
-        send_mail(asunto, mensaje, remitente, destinatario)
+        send_mail(
+            asunto,
+            mensaje_texto, 
+            remitente,
+            destinatario,
+            html_message=mensaje_html,  
+        )
         data["status"] = "success"
     return JsonResponse(data)
 
+
+@csrf_exempt
+def change_password(request):
+
+    data = {"status":"error"}
+    errors = {}
+
+    if request.method == "POST":
+
+        data_post = json.loads(request.body.decode('utf-8'))
+        password = data_post.get("pass")
+        rep_password = data_post.get("repeat")
+        token = data_post.get("token")
+
+
+
+        f = Fernet(CLAVE_SECRETA)
+        token_bytes = token.encode()
+        mensaje = f.decrypt(token_bytes)
+        datos = mensaje.decode()
+        token_codificado, fecha_str = datos.split("/")
+        
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
+    
+        caducidad = fecha + timedelta(days=2)
+    
+        if caducidad > datetime.now():
+
+            usuario = Usuario.objects.get(verification_token=token_codificado)  
+    
+            if usuario:
+
+
+
+                if len(password) < 5:
+                    errors["short_password"] = "La contraseña debe contener al menos 5 carácteres." 
+
+                if password != rep_password:
+                    errors["different_password"] = "Los contraseñas no coinciden."
+
+                if len(errors) == 0:
+                    usuario.password = password
+                    usuario.save()
+                    data = {"status": "success"}
+                else:
+                    data["errors"] = errors
+            else:
+                data = {"status": "error", "mensaje": "El usuario asociado al token no existe"}
+        else:
+            data = {"status": "error", "mensaje": "El token ha caducado"}
+
+    
+    return JsonResponse(data)
 #elimina un post
 @csrf_exempt
 def eliminar_post(request):

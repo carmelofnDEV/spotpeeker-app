@@ -14,9 +14,11 @@ urlpatterns = [
     path('register/user/', views.register, name='register'),
     path('login/user/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
-    path('verify-email/<str:token>/', views.verify_mail, name='mail_verify'),
+    path('verify-email/', views.verify_mail, name='mail_verify'),
     path('verify-cookie/', views.verify_session_cookie, name='mail_verify'),
-    path('change-password/', views.change_password, name='change-password'),
+    path('change-password/', views.mail_change_password, name='change-password'),
+    path('change-user-password/', views.change_password, name='change-password'),
+
 
 
 
